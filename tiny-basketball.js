@@ -164,6 +164,8 @@ export class TinyBasketball extends Scene {
       ground_transform,
       this.materials.phong
     );
+
+    this.draw_backboard(context, program_state);
   }
 
   draw_backboard(context, program_state) {
