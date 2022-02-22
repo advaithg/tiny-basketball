@@ -1,23 +1,30 @@
-import {defs} from './commons/common.js';
+import {defs, tiny} from './examples/common.js';
+import {TinyBasketball} from "./tiny-basketball.js";
+// Pull these names into this module's scope for convenience:
+const {
+    Vector, Vector3, vec, vec3, vec4, color, Matrix, Mat4, Light, Shape, Material, Shader, Texture, Scene,
+    Canvas_Widget, Code_Widget, Text_Widget
+} = tiny;
 
-// Now everything is loaded from tiny-graphics.js and its helper files. An object "tiny" wraps its contents, along
-// with "defs" for wrapping some additional utilities included in common.js.
+// Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and common.js.
+// This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
 
-// ******************** Before selecting which demo we want to display, we have to load its code. If this page is hosted
-// on the internet, the demo's class can be injected right here by the server.
-//
-// In this case, it's not, so you'll instead Load demos from files in your directory and copy them into "defs."
+// ******************** Extra step only for when executing on a local machine:
+//                      Load any more files in your directory and copy them into "defs."
+//                      (On the web, a server should instead just pack all these as well
+//                      as common.js into one file for you, such as "dependencies.js")
 
-import {Demonstration}
-                    from "./commons/demonstration.js";
+const Minimal_Webgl_Demo = defs.Minimal_Webgl_Demo;
 
-Object.assign (defs,
-               {Demonstration},
+Object.assign(defs,
+    {TinyBasketball}
 );
 
-// ******************** SELECT THE DEMO TO DISPLAY:
+// ******************** End extra step
 
-const main_scene        = Demonstration;
-const additional_scenes = [];
+// (Can define Main_Scene's class here)
 
-export {main_scene, additional_scenes, defs};
+const Main_Scene = TinyBasketball;
+const Additional_Scenes = [];
+
+export {Main_Scene, Additional_Scenes, Canvas_Widget, Code_Widget, Text_Widget, defs}
