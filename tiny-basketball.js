@@ -36,11 +36,11 @@ export class TinyBasketball extends Scene {
       basketball: new defs.Subdivision_Sphere(10),
       basketball_stripe: new defs.Torus(1, 30),
       ground: new defs.Square(),
-      backboard_hoop: new defs.Cylindrical_Tube(3,15),
       wall1: new defs.Square(),
       wall2: new defs.Square(),
-      backboard_hoop: new defs.Torus(),
       backboard: new defs.Square(),
+      backboard_hoop: new defs.Cylindrical_Tube(3,15),
+      backboard_pole: new defs.Cylindrical_Tube(3,15),
     };
 
     this.shapes.wall2.arrays.texture_coord = [];
@@ -149,21 +149,34 @@ export class TinyBasketball extends Scene {
     // GROUND
 
     // BACKBOARD
-    let backboard_transform = Mat4.identity();
-    backboard_transform = backboard_transform.times(Mat4.translation(0, 6, -9));
+    this.draw_backboard(context, program_state, Mat4.identity());
+  }
+  
+  draw_backboard(context, program_state, backboard_transform) {
+    let backboard_loc = backboard_transform.times(Mat4.translation(0, 6, -8.5));
     this.shapes.backboard.draw(
       context,
       program_state,
-      backboard_transform.times(Mat4.scale(2,2,2)),
+      backboard_loc.times(Mat4.scale(2.5,2,2)),
       this.materials.phong
     );
-    backboard_transform = backboard_transform
+    let hoop_loc = backboard_loc
         .times(Mat4.rotation(Math.PI/2, 1, 0,0))
-        .times(Mat4.translation(0, 2, 2));
+        .times(Mat4.translation(0, 1, 1.5));
     this.shapes.backboard_hoop.draw(
         context,
         program_state,
-        backboard_transform,
+        hoop_loc,
+        this.materials.phong.override({color:COLORS.red})
+    );
+    let pole_loc = backboard_loc
+        .times(Mat4.scale(25,1,1))
+        .times(Mat4.rotation(Math.PI/2,0,1,0))
+        .times(Mat4.translation(1,0,0))
+    this.shapes.backboard_pole.draw(
+        context,
+        program_state,
+        pole_loc,
         this.materials.phong.override({color:COLORS.red})
     );
   }
