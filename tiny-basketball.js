@@ -19,9 +19,16 @@ const {
 } = tiny;
 
 const COLORS = {
+  black: hex_color("#000000"),
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
+  basketball: hex_color("#f88158"),
 };
+
+const PATHS = {
+  brick_wall: "assets/brick-wall.jpeg",
+};
+
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -57,36 +64,41 @@ export class TinyBasketball extends Scene {
     // Materials
     this.materials = {
       phong: new Material(new defs.Textured_Phong(), {
-        color: hex_color("#FFFFFF"),
+        color: COLORS.white,
       }),
       basketball: new Material(new defs.Phong_Shader(), {
-        color: hex_color("#F88158"),
+        color: COLORS.basketball,
       }),
       basketball_stripe: new Material(new defs.Phong_Shader(), {
-        color: hex_color("#000000"),
+        color: COLORS.black,
       }),
       wall_texture: new Material(new defs.Textured_Phong(), {
-        color: hex_color("#000000"),
+        color: COLORS.black,
         ambient: 1,
-        texture: new Texture("assets/brick-wall.jpeg"),
+        texture: new Texture(PATHS.brick_wall),
       }),
       ground_texture: new Material(new defs.Textured_Phong(), {
-        color: hex_color("#ffffff"),
+        color: COLORS.white,
       }),
     };
 
     /* Other Scene Variables */
-    // Camera location
+    // Camera Direction and Location
     this.initial_camera_location = Mat4.look_at(
       vec3(0, 10, 20),
       vec3(0, 0, 0),
       vec3(0, 1, 0)
     );
+    this.initial_camera_position = Mat4.translation(0, 0, -20);
+    // Light Position
+    this.light_position = vec4(0, 10, 8, 1);
 
     console.log("Sus");
   }
 
-  make_control_panel() {}
+  make_control_panel() {
+    /* TODO: Control Panel */
+  }
 
   display(context, program_state) {
     if (!context.scratchpad.controls) {
@@ -94,7 +106,7 @@ export class TinyBasketball extends Scene {
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
       // Define the global camera and projection matrices, which are stored in program_state.
-      program_state.set_camera(Mat4.translation(0, 0, -8));
+      program_state.set_camera(this.initial_camera_position);
     }
 
     program_state.projection_transform = Mat4.perspective(
@@ -104,24 +116,33 @@ export class TinyBasketball extends Scene {
       100
     );
 
-    const light_position = vec4(10, 10, 10, 1);
-    program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+    program_state.lights = [
+      new Light(this.light_position, color(1, 1, 1, 1), 1000),
+    ];
 
     this.dt = program_state.animation_delta_time / 1000;
 
-    //
     // BASKETBALL
-    //
-    let model_transform = Mat4.identity();
-    model_transform = model_transform.times(Mat4.scale(1, 1, 1));
+    this.draw_basketball(context, program_state);
+    // BACKGROUND
+    this.draw_background(context, program_state);
+    // BACKBOARD
+    this.draw_backboard(context, program_state);
+  }
+
+  // Draws basketball
+  draw_basketball(context, program_state) {
+    // BALL
+    const ball_location = Mat4.identity().times(Mat4.translation(0, -5, 5));
     this.shapes.basketball.draw(
       context,
       program_state,
-      model_transform,
+      ball_location,
       this.materials.basketball
     );
 
-    let stripe_matrices = [
+    // STRIPES
+    const stripe_matrices = [
       Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(1.02, 1.02, 0.03)),
       Mat4.rotation(Math.PI / 2, 1, 0, 0).times(Mat4.scale(1.02, 1.02, 0.03)),
       Mat4.rotation(Math.PI / 4, 0, 0, 1)
@@ -136,15 +157,18 @@ export class TinyBasketball extends Scene {
       this.shapes.basketball_stripe.draw(
         context,
         program_state,
-        stripe_matrices[i],
+        ball_location.times(stripe_matrices[i]),
         this.materials.basketball_stripe
       );
     }
+  }
 
+  // Draws background
+  draw_background(context, program_state) {
     // WALL
-    let wall_transform = Mat4.identity();
-    wall_transform = wall_transform.times(Mat4.translation(0, 0, -10));
-    wall_transform = wall_transform.times(Mat4.scale(14, 10, 0.1));
+    let wall_transform = Mat4.identity()
+      .times(Mat4.translation(0, 0, -10))
+      .times(Mat4.scale(14, 10, 0.1));
     this.shapes.wall2.draw(
       context,
       program_state,
@@ -164,35 +188,39 @@ export class TinyBasketball extends Scene {
       ground_transform,
       this.materials.phong
     );
-
-    this.draw_backboard(context, program_state);
   }
 
+  // Draws backboard
   draw_backboard(context, program_state) {
-    let backboard_loc = Mat4.identity().times(Mat4.translation(0, 6, -8.5));
+    // BACKBOARD
+    let backboard_location = Mat4.identity().times(
+      Mat4.translation(0, 6, -8.5)
+    );
     this.shapes.backboard.draw(
       context,
       program_state,
-      backboard_loc.times(Mat4.scale(2.5, 2, 2)),
+      backboard_location.times(Mat4.scale(2.5, 2, 2)),
       this.materials.phong
     );
-    let hoop_loc = backboard_loc
+    // HOOP/NET
+    let hoop_location = backboard_location
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
       .times(Mat4.translation(0, 1, 1.5));
     this.shapes.backboard_hoop.draw(
       context,
       program_state,
-      hoop_loc,
+      hoop_location,
       this.materials.phong.override({ color: COLORS.red })
     );
-    let pole_loc = backboard_loc
+    // SLIDE POLE
+    let pole_location = backboard_location
       .times(Mat4.scale(25, 1, 1))
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
       .times(Mat4.translation(1, 0, 0));
     this.shapes.backboard_pole.draw(
       context,
       program_state,
-      pole_loc,
+      pole_location,
       this.materials.phong.override({ color: COLORS.red })
     );
   }
