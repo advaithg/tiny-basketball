@@ -68,7 +68,7 @@ export class TinyBasketball extends Scene {
       // Define the global camera and projection matrices, which are stored in program_state.
       program_state.set_camera(Mat4.translation(0, 0, -8));
     }
-
+    
     program_state.projection_transform = Mat4.perspective(
       Math.PI / 4,
       context.width / context.height,
@@ -111,10 +111,20 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       model_transform,
-      this.materials.basketball_stripe
+
+      this.materials.phong.override({ color: hex_color("#000000") })
     );
 
     // WALL
+    let wall_transform = Mat4.identity();
+    wall_transform = wall_transform.times(Mat4.translation(0, 0, -10));
+    wall_transform = wall_transform.times(Mat4.scale(10, 10, 0.1));
+    this.shapes.wall.draw(
+      context,
+      program_state,
+      wall_transform,
+      this.materials.phong.override({ color: hex_color("#ffffff") })
+    );
 
     // GROUND
 
