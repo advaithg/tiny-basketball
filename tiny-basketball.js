@@ -38,13 +38,13 @@ export class TinyBasketball extends Scene {
       backboard: new defs.Square(),
     };
 
-    this.shapes.wall2.arrays.texture_coord = []
-        this.shapes.wall1.arrays.texture_coord.forEach( (x, i) => {
-            const next = new Vector(this.shapes.wall1.arrays.texture_coord[i]);
-            next.scale_by(11);
-            this.shapes.wall2.arrays.texture_coord.push(next);
-        });
-    
+    this.shapes.wall2.arrays.texture_coord = [];
+    this.shapes.wall1.arrays.texture_coord.forEach((x, i) => {
+      const next = new Vector(this.shapes.wall1.arrays.texture_coord[i]);
+      next.scale_by(11);
+      this.shapes.wall2.arrays.texture_coord.push(next);
+    });
+
     // Materials
     this.materials = {
       phong: new Material(new defs.Textured_Phong(), {
@@ -139,7 +139,7 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       wall_transform,
-      this.materials.wall_texture,
+      this.materials.wall_texture
     );
 
     // GROUND
