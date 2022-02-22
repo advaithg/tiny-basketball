@@ -36,10 +36,19 @@ export class TinyBasketball extends Scene {
       basketball: new defs.Subdivision_Sphere(10),
       basketball_stripe: new defs.Torus(1, 30),
       ground: new defs.Square(),
-      wall: new defs.Square(),
       backboard_hoop: new defs.Cylindrical_Tube(3,15),
+      wall1: new defs.Square(),
+      wall2: new defs.Square(),
+      backboard_hoop: new defs.Torus(),
       backboard: new defs.Square(),
     };
+
+    this.shapes.wall2.arrays.texture_coord = [];
+    this.shapes.wall1.arrays.texture_coord.forEach((x, i) => {
+      const next = new Vector(this.shapes.wall1.arrays.texture_coord[i]);
+      next.scale_by(11);
+      this.shapes.wall2.arrays.texture_coord.push(next);
+    });
 
     // Materials
     this.materials = {
@@ -51,6 +60,11 @@ export class TinyBasketball extends Scene {
       }),
       basketball_stripe: new Material(new defs.Textured_Phong(), {
         color: hex_color("#000000"),
+      }),
+      wall_texture: new Material(new defs.Textured_Phong(), {
+        color: hex_color("#000000"),
+        ambient: 1,
+        texture: new Texture("assets/brick-wall.jpeg"),
       }),
     };
 
@@ -124,12 +138,12 @@ export class TinyBasketball extends Scene {
     // WALL
     let wall_transform = Mat4.identity();
     wall_transform = wall_transform.times(Mat4.translation(0, 0, -10));
-    wall_transform = wall_transform.times(Mat4.scale(10, 10, 0.1));
-    this.shapes.wall.draw(
+    wall_transform = wall_transform.times(Mat4.scale(14, 10, 0.1));
+    this.shapes.wall2.draw(
       context,
       program_state,
       wall_transform,
-      this.materials.phong.override({ color: hex_color("#ffffff") })
+      this.materials.wall_texture
     );
 
     // GROUND
