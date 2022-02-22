@@ -61,6 +61,10 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture("assets/brick-wall.jpeg"),
       }),
+      ground_texture: new Material(new defs.Textured_Phong(), {
+        color: hex_color("#ffffff"),
+      }),
+
     };
 
     /* Other Scene Variables */
@@ -92,7 +96,7 @@ export class TinyBasketball extends Scene {
       100
     );
 
-    const light_position = vec4(0, 10, 0, 1);
+    const light_position = vec4(10, 10, 10, 1);
     program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
     this.dt = program_state.animation_delta_time / 1000;
@@ -143,6 +147,16 @@ export class TinyBasketball extends Scene {
     );
 
     // GROUND
+    let ground_transform = Mat4.identity();
+    ground_transform = ground_transform.times(Mat4.scale(14, 1, 14));
+    ground_transform = ground_transform.times(Mat4.translation(0, -10, -14));
+    ground_transform = ground_transform.times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
+    this.shapes.ground.draw(
+      context,
+      program_state,
+      ground_transform,
+      this.materials.ground_texture,
+    );
 
     // BACKBOARD
     let backboard_transform = Mat4.identity();
