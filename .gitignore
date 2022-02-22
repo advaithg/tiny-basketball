@@ -2,3 +2,4 @@
 *.bat
 *.command
 .vscode/*
+.DS_Store

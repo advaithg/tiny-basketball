@@ -84,17 +84,43 @@ export class TinyBasketball extends Scene {
     //
     // BASKETBALL
     //
-    // let model_transform = Mat4.identity();
-    // model_transform = model_transform.times(Mat4.scale(1, 1, 1));
-    // this.shapes.basketball.draw(context, program_state, model_transform, this.materials.phong.override({color: hex_color("#F88158")}));
-    // model_transform = model_transform.times(Mat4.scale(1.5, 1.5, 0.1));
-    // this.shapes.basketball_stripe.draw(context, program_state, model_transform, this.materials.phong.override({color: hex_color("#000000")}));
-    // model_transform = Mat4.identity();
-    // model_transform = model_transform.times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
-    // model_transform = model_transform.times(Mat4.scale(1.5, 1.5, 0.1));
-    // this.shapes.basketball_stripe.draw(context, program_state, model_transform, this.materials.phong.override({color: hex_color("#000000")}));
+    let model_transform = Mat4.identity();
+    model_transform = model_transform.times(Mat4.scale(1, 1, 1));
+    this.shapes.basketball.draw(
+      context,
+      program_state,
+      model_transform,
+      this.materials.phong.override({ color: hex_color("#F88158") })
+    );
+    model_transform = model_transform.times(Mat4.scale(1.5, 1.5, 0.1));
+    this.shapes.basketball_stripe.draw(
+      context,
+      program_state,
+      model_transform,
+      this.materials.phong.override({ color: hex_color("#000000") })
+    );
+    model_transform = Mat4.identity();
+    model_transform = model_transform.times(
+      Mat4.rotation(Math.PI / 2, 0, 1, 0)
+    );
+    model_transform = model_transform.times(Mat4.scale(1.5, 1.5, 0.1));
+    this.shapes.basketball_stripe.draw(
+      context,
+      program_state,
+      model_transform,
+      this.materials.phong.override({ color: hex_color("#000000") })
+    );
 
     // WALL
+    let wall_transform = Mat4.identity();
+    wall_transform = wall_transform.times(Mat4.translation(0, 0, -10));
+    wall_transform = wall_transform.times(Mat4.scale(10, 10, 0.1));
+    this.shapes.wall.draw(
+      context,
+      program_state,
+      wall_transform,
+      this.materials.phong.override({ color: hex_color("#ffffff") })
+    );
 
     // GROUND
 
