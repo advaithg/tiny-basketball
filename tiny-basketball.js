@@ -18,6 +18,10 @@ const {
   Texture,
 } = tiny;
 
+const COLORS = {
+    white: hex_color('#ffffff'),
+    red: hex_color('#ff0000'),
+}
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -34,8 +38,9 @@ export class TinyBasketball extends Scene {
       ground: new defs.Square(),
       wall1: new defs.Square(),
       wall2: new defs.Square(),
-      backboard_hoop: new defs.Torus(),
       backboard: new defs.Square(),
+      backboard_hoop: new defs.Cylindrical_Tube(3,15),
+      backboard_pole: new defs.Cylindrical_Tube(3,15),
     };
 
     this.shapes.wall2.arrays.texture_coord = [];
@@ -131,7 +136,6 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       model_transform,
-
       this.materials.phong.override({ color: hex_color("#000000") })
     );
 
@@ -159,12 +163,35 @@ export class TinyBasketball extends Scene {
     );
 
     // BACKBOARD
-    let backboard_transform = Mat4.identity();
+    this.draw_backboard(context, program_state, Mat4.identity());
+  }
+  
+  draw_backboard(context, program_state, backboard_transform) {
+    let backboard_loc = backboard_transform.times(Mat4.translation(0, 6, -8.5));
     this.shapes.backboard.draw(
       context,
       program_state,
-      backboard_transform,
+      backboard_loc.times(Mat4.scale(2.5,2,2)),
       this.materials.phong
+    );
+    let hoop_loc = backboard_loc
+        .times(Mat4.rotation(Math.PI/2, 1, 0,0))
+        .times(Mat4.translation(0, 1, 1.5));
+    this.shapes.backboard_hoop.draw(
+        context,
+        program_state,
+        hoop_loc,
+        this.materials.phong.override({color:COLORS.red})
+    );
+    let pole_loc = backboard_loc
+        .times(Mat4.scale(25,1,1))
+        .times(Mat4.rotation(Math.PI/2,0,1,0))
+        .times(Mat4.translation(1,0,0))
+    this.shapes.backboard_pole.draw(
+        context,
+        program_state,
+        pole_loc,
+        this.materials.phong.override({color:COLORS.red})
     );
   }
 }
