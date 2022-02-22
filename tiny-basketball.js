@@ -18,6 +18,10 @@ const {
   Texture,
 } = tiny;
 
+const COLORS = {
+    white: hex_color('#ffffff'),
+    red: hex_color('#ff0000'),
+}
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -33,12 +37,15 @@ export class TinyBasketball extends Scene {
       basketball_stripe: new defs.Torus(1, 30),
       ground: new defs.Square(),
       wall: new defs.Square(),
-      backboard_hoop: new defs.Torus(),
+      backboard_hoop: new defs.Cylindrical_Tube(3,15),
       backboard: new defs.Square(),
     };
 
     // Materials
     this.materials = {
+      phong: new Material(new defs.Textured_Phong(), {
+        color: hex_color("#ffffff"),
+      }),
       basketball: new Material(new defs.Textured_Phong(), {
         color: hex_color("#F88158"),
       }),
@@ -68,7 +75,7 @@ export class TinyBasketball extends Scene {
       // Define the global camera and projection matrices, which are stored in program_state.
       program_state.set_camera(Mat4.translation(0, 0, -8));
     }
-    
+
     program_state.projection_transform = Mat4.perspective(
       Math.PI / 4,
       context.width / context.height,
@@ -76,7 +83,7 @@ export class TinyBasketball extends Scene {
       100
     );
 
-    const light_position = vec4(0, 10, 0, 1);
+    const light_position = vec4(10, 10, 10, 1);
     program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
     this.dt = program_state.animation_delta_time / 1000;
@@ -111,7 +118,6 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       model_transform,
-
       this.materials.phong.override({ color: hex_color("#000000") })
     );
 
@@ -130,6 +136,21 @@ export class TinyBasketball extends Scene {
 
     // BACKBOARD
     let backboard_transform = Mat4.identity();
-    this.shapes.backboard.draw(context, program_state, backboard_transform, this.materials.phong);
+    backboard_transform = backboard_transform.times(Mat4.translation(0, 6, -9));
+    this.shapes.backboard.draw(
+      context,
+      program_state,
+      backboard_transform.times(Mat4.scale(2,2,2)),
+      this.materials.phong
+    );
+    backboard_transform = backboard_transform
+        .times(Mat4.rotation(Math.PI/2, 1, 0,0))
+        .times(Mat4.translation(0, 2, 2));
+    this.shapes.backboard_hoop.draw(
+        context,
+        program_state,
+        backboard_transform,
+        this.materials.phong.override({color:COLORS.red})
+    );
   }
 }
