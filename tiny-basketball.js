@@ -18,8 +18,6 @@ const {
   Texture,
 } = tiny;
 
-const { Cube, Textured_Phong } = defs;
-
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -31,7 +29,6 @@ export class TinyBasketball extends Scene {
 
     // Shapes
     this.shapes = {
-      cube: new Cube(),
       basketball: new defs.Subdivision_Sphere(10),
       basketball_stripe: new defs.Torus(1, 30),
       ground: new defs.Square(),
@@ -42,8 +39,11 @@ export class TinyBasketball extends Scene {
 
     // Materials
     this.materials = {
-      phong: new Material(new Textured_Phong(), {
-        color: hex_color("#ffffff"),
+      basketball: new Material(new defs.Textured_Phong(), {
+        color: hex_color("#F88158"),
+      }),
+      basketball_stripe: new Material(new defs.Textured_Phong(), {
+        color: hex_color("#000000"),
       }),
     };
 
@@ -68,7 +68,7 @@ export class TinyBasketball extends Scene {
       // Define the global camera and projection matrices, which are stored in program_state.
       program_state.set_camera(Mat4.translation(0, 0, -8));
     }
-
+    
     program_state.projection_transform = Mat4.perspective(
       Math.PI / 4,
       context.width / context.height,
@@ -90,15 +90,18 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       model_transform,
-      this.materials.phong.override({ color: hex_color("#F88158") })
+      this.materials.basketball
     );
+
+    model_transform = Mat4.identity();
     model_transform = model_transform.times(Mat4.scale(1.5, 1.5, 0.1));
     this.shapes.basketball_stripe.draw(
       context,
       program_state,
       model_transform,
-      this.materials.phong.override({ color: hex_color("#000000") })
+      this.materials.basketball_stripe
     );
+
     model_transform = Mat4.identity();
     model_transform = model_transform.times(
       Mat4.rotation(Math.PI / 2, 0, 1, 0)
@@ -108,6 +111,7 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       model_transform,
+
       this.materials.phong.override({ color: hex_color("#000000") })
     );
 
