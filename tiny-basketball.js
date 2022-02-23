@@ -22,11 +22,11 @@ const COLORS = {
   black: hex_color("#000000"),
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
-  basketball: hex_color("#f88158"),
 };
 
 const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
+  basketball: "assets/basketball.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -47,12 +47,7 @@ export class TinyBasketball extends Scene {
 
     // Shapes
     this.shapes = {
-      basketball: new defs.Subdivision_Sphere(4),
-      basketball_stripe: new defs.Surface_Of_Revolution(
-        20,
-        20,
-        Vector3.cast([0, 1, 1], [0, 1, -1])
-      ),
+      basketball: new defs.Subdivision_Sphere(5),
       ground: new defs.Square(),
       wall1: new defs.Square(),
       wall2: new defs.Square(),
@@ -73,11 +68,10 @@ export class TinyBasketball extends Scene {
       phong: new Material(new defs.Textured_Phong(), {
         color: COLORS.white,
       }),
-      basketball: new Material(new defs.Phong_Shader(), {
-        color: COLORS.basketball,
-      }),
-      basketball_stripe: new Material(new defs.Phong_Shader(), {
+      basketball: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.basketball),
       }),
       wall_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
@@ -152,34 +146,15 @@ export class TinyBasketball extends Scene {
   // Draws basketball
   draw_basketball(context, program_state) {
     // BALL
-    const ball_location = Mat4.identity().times(Mat4.translation(0, -5, 5));
+    const ball_location = Mat4.identity()
+      .times(Mat4.translation(0, -5, 5))
+      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
     this.shapes.basketball.draw(
       context,
       program_state,
       ball_location,
       this.materials.basketball
     );
-
-    // STRIPES
-    const stripe_matrices = [
-      Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(1.02, 1.02, 0.03)),
-      Mat4.rotation(Math.PI / 2, 1, 0, 0).times(Mat4.scale(1.02, 1.02, 0.03)),
-      Mat4.rotation(Math.PI / 4, 0, 0, 1)
-        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
-        .times(Mat4.scale(1.02, 1.02, 0.03)),
-      Mat4.rotation(-Math.PI / 4, 0, 0, 1)
-        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
-        .times(Mat4.scale(1.02, 1.02, 0.03)),
-    ];
-
-    for (let i = 0; i < stripe_matrices.length; i++) {
-      this.shapes.basketball_stripe.draw(
-        context,
-        program_state,
-        ball_location.times(stripe_matrices[i]),
-        this.materials.basketball_stripe
-      );
-    }
   }
 
   // Draws background
@@ -213,7 +188,8 @@ export class TinyBasketball extends Scene {
   draw_backboard(context, program_state) {
     // BACKBOARD
     if (this.backboard_move) {
-      this.positions.backboard = BACKBOARD.max * Math.sin(this.t * BACKBOARD.omega);
+      this.positions.backboard =
+        BACKBOARD.max * Math.sin(this.t * BACKBOARD.omega);
     }
     const backboard_location = Mat4.identity()
       .times(BACKBOARD.center)
