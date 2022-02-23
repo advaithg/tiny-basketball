@@ -33,7 +33,7 @@ const RAD_MAX = Math.PI * 2;
 const BACKBOARD = {
   omega: RAD_MAX / 10,
   center: Mat4.translation(0, 6, -8.5),
-  max: 4.5,
+  max: 5,
 };
 
 export class TinyBasketball extends Scene {
@@ -54,6 +54,7 @@ export class TinyBasketball extends Scene {
       backboard: new defs.Square(),
       backboard_hoop: new defs.Cylindrical_Tube(3, 15),
       backboard_pole: new defs.Cylindrical_Tube(3, 15),
+      side_walls: new defs.Square(),
     };
 
     this.shapes.wall2.arrays.texture_coord = [];
@@ -81,6 +82,9 @@ export class TinyBasketball extends Scene {
       ground_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.white,
       }),
+      sides_texture: new Material(new defs.Textured_Phong(), {
+        color: COLORS.red,
+      })
     };
 
     /* Other Scene Variables */
@@ -90,7 +94,7 @@ export class TinyBasketball extends Scene {
       vec3(0, 0, 0),
       vec3(0, 1, 0)
     );
-    this.initial_camera_position = Mat4.translation(0, 0, -20);
+    this.initial_camera_position = Mat4.translation(0, 0, -30);
     // Light Position
     this.light_position = vec4(0, 10, 8, 1);
     // dt
@@ -147,7 +151,7 @@ export class TinyBasketball extends Scene {
   draw_basketball(context, program_state) {
     // BALL
     const ball_location = Mat4.identity()
-      .times(Mat4.translation(0, -5, 5))
+      .times(Mat4.translation(0, -5, 15))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
     this.shapes.basketball.draw(
       context,
@@ -161,8 +165,8 @@ export class TinyBasketball extends Scene {
   draw_background(context, program_state) {
     // WALL
     let wall_transform = Mat4.identity()
-      .times(Mat4.translation(0, 0, -10))
-      .times(Mat4.scale(14, 10, 0.1));
+      .times(Mat4.translation(0, 4, -10))
+      .times(Mat4.scale(23, 14, 0.1));
     this.shapes.wall2.draw(
       context,
       program_state,
@@ -174,15 +178,40 @@ export class TinyBasketball extends Scene {
     let ground_transform = Mat4.identity();
     ground_transform = ground_transform
       .times(Mat4.translation(0, -10, 0))
-      .times(Mat4.scale(14, 1, 14))
+      .times(Mat4.scale(23, 1, 14))
       .times(Mat4.rotation((3 * Math.PI) / 2, 1, 0, 0));
     this.shapes.ground.draw(
       context,
       program_state,
       ground_transform,
-      this.materials.phong
+      this.materials.ground_texture
     );
-  }
+
+
+    // SIDES
+    let sides_transform = Mat4.identity();
+    sides_transform = sides_transform
+      .times(Mat4.translation(23, 4, 0))
+      .times(Mat4.scale(1, 14, 14))
+      .times(Mat4.rotation((3*Math.PI)/2, 0, 1, 0));
+    this.shapes.side_walls.draw(
+      context,
+      program_state,
+      sides_transform,
+      this.materials.sides_texture
+    );
+    sides_transform = Mat4.identity();
+    sides_transform = sides_transform
+    .times(Mat4.translation(-23, 4, 0))
+    .times(Mat4.scale(1, 14, 14))
+    .times(Mat4.rotation((Math.PI)/2, 0, 1, 0));
+    this.shapes.side_walls.draw(
+      context,
+      program_state,
+      sides_transform,
+      this.materials.sides_texture
+    );
+}
 
   // Draws backboard
   draw_backboard(context, program_state) {
@@ -194,7 +223,7 @@ export class TinyBasketball extends Scene {
     const backboard_location = Mat4.identity()
       .times(BACKBOARD.center)
       .times(Mat4.scale(2.5, 2, 2))
-      .times(Mat4.translation(this.positions.backboard, 0, 0));
+      .times(Mat4.translation(this.positions.backboard, 2, 0));
     this.shapes.backboard.draw(
       context,
       program_state,
@@ -215,9 +244,9 @@ export class TinyBasketball extends Scene {
     // SLIDE POLE
     const pole_location = Mat4.identity()
       .times(BACKBOARD.center)
-      .times(Mat4.scale(25, 1, 1))
+      .times(Mat4.scale(30, 0.5, 1))
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
-      .times(Mat4.translation(1, 0, 0));
+      .times(Mat4.translation(1, 8, 0));
     this.shapes.backboard_pole.draw(
       context,
       program_state,
