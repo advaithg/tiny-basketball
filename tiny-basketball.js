@@ -29,6 +29,13 @@ const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
 };
 
+const RAD_MAX = Math.PI * 2;
+const BACKBOARD = {
+  omega: RAD_MAX / 10,
+  center: Mat4.translation(0, 6, -8.5),
+  max: 4.5,
+};
+
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -92,12 +99,23 @@ export class TinyBasketball extends Scene {
     this.initial_camera_position = Mat4.translation(0, 0, -20);
     // Light Position
     this.light_position = vec4(0, 10, 8, 1);
-
+    // dt
+    this.dt = 0;
+    // Backboard move flag
+    this.backboard_move = true;
+    // Object locations
+    this.positions = {
+      backboard: 0,
+    };
     console.log("Sus");
   }
 
   make_control_panel() {
-    /* TODO: Control Panel */
+    /* this.key_triggered_button(
+      "Pause backboard",
+      ["p"],
+      () => (this.backboard_move = !this.backboard_move)
+    ); */
   }
 
   display(context, program_state) {
@@ -120,7 +138,8 @@ export class TinyBasketball extends Scene {
       new Light(this.light_position, color(1, 1, 1, 1), 1000),
     ];
 
-    this.dt = program_state.animation_delta_time / 1000;
+    (this.t = program_state.animation_time / 1000),
+      (this.dt = program_state.animation_delta_time / 1000);
 
     // BASKETBALL
     this.draw_basketball(context, program_state);
@@ -193,17 +212,22 @@ export class TinyBasketball extends Scene {
   // Draws backboard
   draw_backboard(context, program_state) {
     // BACKBOARD
-    let backboard_location = Mat4.identity().times(
-      Mat4.translation(0, 6, -8.5)
-    );
+    if (this.backboard_move) {
+      this.positions.backboard = BACKBOARD.max * Math.sin(this.t * BACKBOARD.omega);
+    }
+    const backboard_location = Mat4.identity()
+      .times(BACKBOARD.center)
+      .times(Mat4.scale(2.5, 2, 2))
+      .times(Mat4.translation(this.positions.backboard, 0, 0));
     this.shapes.backboard.draw(
       context,
       program_state,
-      backboard_location.times(Mat4.scale(2.5, 2, 2)),
+      backboard_location,
       this.materials.phong
     );
     // HOOP/NET
-    let hoop_location = backboard_location
+    const hoop_location = backboard_location
+      .times(Mat4.scale(0.4, 0.5, 0.5))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
       .times(Mat4.translation(0, 1, 1.5));
     this.shapes.backboard_hoop.draw(
@@ -213,7 +237,8 @@ export class TinyBasketball extends Scene {
       this.materials.phong.override({ color: COLORS.red })
     );
     // SLIDE POLE
-    let pole_location = backboard_location
+    const pole_location = Mat4.identity()
+      .times(BACKBOARD.center)
       .times(Mat4.scale(25, 1, 1))
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
       .times(Mat4.translation(1, 0, 0));
