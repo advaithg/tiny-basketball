@@ -117,13 +117,14 @@ export class TinyBasketball extends Scene {
   }
 
   display(context, program_state) {
-    if (!context.scratchpad.controls) {
-      this.children.push(
-        (context.scratchpad.controls = new defs.Movement_Controls())
-      );
-      // Define the global camera and projection matrices, which are stored in program_state.
-      program_state.set_camera(this.initial_camera_position);
-    }
+    // gets rid of control panel to prevent movement of camera
+    // if (!context.scratchpad.controls) {
+    //   this.children.push(
+    //     (context.scratchpad.controls = new defs.Movement_Controls())
+    //   );
+    // }
+    program_state.set_camera(this.initial_camera_position);
+    
 
     program_state.projection_transform = Mat4.perspective(
       Math.PI / 4,
