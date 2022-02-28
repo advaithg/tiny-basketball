@@ -22,6 +22,7 @@ const COLORS = {
   black: hex_color("#000000"),
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
+  silver: hex_color("#bcbcbc"),
 };
 
 const PATHS = {
@@ -31,7 +32,7 @@ const PATHS = {
 
 const RAD_MAX = Math.PI * 2;
 const BACKBOARD = {
-  omega: RAD_MAX / 10,
+  omega: RAD_MAX / 5,
   center: Mat4.translation(0, 6, -8.5),
   max: 5,
 };
@@ -53,7 +54,7 @@ export class TinyBasketball extends Scene {
       wall2: new defs.Square(),
       backboard: new defs.Square(),
       backboard_hoop: new defs.Cylindrical_Tube(3, 15),
-      backboard_pole: new defs.Cylindrical_Tube(3, 15),
+      backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
     };
 
@@ -74,6 +75,12 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.basketball),
       }),
+      pole: new Material(new defs.Textured_Phong(), {
+        color: COLORS.silver,
+        specular: 1,
+        ambient: .2,
+        diffusivity: 1,
+      }),
       wall_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
         ambient: 1,
@@ -81,6 +88,9 @@ export class TinyBasketball extends Scene {
       }),
       ground_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.white,
+        // specular: 1,
+        // ambient: .5,
+        diffusivity: .5,
       }),
       sides_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.red,
@@ -96,7 +106,7 @@ export class TinyBasketball extends Scene {
     );
     this.initial_camera_position = Mat4.translation(0, 0, -30);
     // Light Position
-    this.light_position = vec4(0, 10, 8, 1);
+    this.light_position = vec4(10, 20, 8, 1);
     // dt
     this.dt = 0;
     // Backboard move flag
@@ -109,20 +119,20 @@ export class TinyBasketball extends Scene {
   }
 
   make_control_panel() {
-    /* this.key_triggered_button(
+    this.key_triggered_button(
       "Pause backboard",
       ["p"],
       () => (this.backboard_move = !this.backboard_move)
-    ); */
+    );
   }
 
   display(context, program_state) {
     // gets rid of control panel to prevent movement of camera
-    // if (!context.scratchpad.controls) {
-    //   this.children.push(
-    //     (context.scratchpad.controls = new defs.Movement_Controls())
-    //   );
-    // }
+    if (!context.scratchpad.controls) {
+      this.children.push(
+        (context.scratchpad.controls = new defs.Movement_Controls())
+      );
+    }
     program_state.set_camera(this.initial_camera_position);
     
 
@@ -137,8 +147,8 @@ export class TinyBasketball extends Scene {
       new Light(this.light_position, color(1, 1, 1, 1), 1000),
     ];
 
-    (this.t = program_state.animation_time / 1000),
-      (this.dt = program_state.animation_delta_time / 1000);
+    this.t = program_state.animation_time / 1000;
+    this.dt = program_state.animation_delta_time / 1000;
 
     // BASKETBALL
     this.draw_basketball(context, program_state);
@@ -203,9 +213,9 @@ export class TinyBasketball extends Scene {
     );
     sides_transform = Mat4.identity();
     sides_transform = sides_transform
-    .times(Mat4.translation(-23, 4, 0))
-    .times(Mat4.scale(1, 14, 14))
-    .times(Mat4.rotation((Math.PI)/2, 0, 1, 0));
+      .times(Mat4.translation(-23, 4, 0))
+      .times(Mat4.scale(1, 14, 14))
+      .times(Mat4.rotation((Math.PI)/2, 0, 1, 0));
     this.shapes.side_walls.draw(
       context,
       program_state,
@@ -218,13 +228,16 @@ export class TinyBasketball extends Scene {
   draw_backboard(context, program_state) {
     // BACKBOARD
     if (this.backboard_move) {
-      this.positions.backboard =
-        BACKBOARD.max * Math.sin(this.t * BACKBOARD.omega);
+      if (Math.abs(this.positions.backboard) > 5) {
+        BACKBOARD.omega = -BACKBOARD.omega;
+      }
+      this.positions.backboard += this.dt * BACKBOARD.omega;
     }
+    
     const backboard_location = Mat4.identity()
       .times(BACKBOARD.center)
       .times(Mat4.scale(2.5, 2, 2))
-      .times(Mat4.translation(this.positions.backboard, 2, 0));
+      .times(Mat4.translation(this.positions.backboard, 2, .8));
     this.shapes.backboard.draw(
       context,
       program_state,
@@ -247,12 +260,12 @@ export class TinyBasketball extends Scene {
       .times(BACKBOARD.center)
       .times(Mat4.scale(30, 0.5, 1))
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
-      .times(Mat4.translation(1, 8, 0));
+      .times(Mat4.translation(-.5, 8, 0));
     this.shapes.backboard_pole.draw(
       context,
       program_state,
       pole_location,
-      this.materials.phong.override({ color: COLORS.red })
+      this.materials.pole
     );
   }
 }
