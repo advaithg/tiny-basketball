@@ -236,7 +236,7 @@ export class TinyBasketball extends Scene {
     
     const backboard_location = Mat4.identity()
       .times(BACKBOARD.center)
-      .times(Mat4.scale(2.5, 2, 2))
+      .times(Mat4.scale(3.75, 2.5, 3))
       .times(Mat4.translation(this.positions.backboard, 2, .8));
     this.shapes.backboard.draw(
       context,
