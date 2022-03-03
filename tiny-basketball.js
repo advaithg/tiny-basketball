@@ -37,6 +37,10 @@ const BACKBOARD = {
   max: 5,
 };
 
+const BALL_LOC = new Vector([0, 260]);
+const VERTICAL = new Vector([0, 1]);
+const BALL_VELOCITY = 5;
+
 export class TinyBasketball extends Scene {
   /**
    *  **Base_scene** is a Scene that can be added to any display canvas.
@@ -78,7 +82,7 @@ export class TinyBasketball extends Scene {
       pole: new Material(new defs.Textured_Phong(), {
         color: COLORS.silver,
         specular: 1,
-        ambient: .2,
+        ambient: 0.2,
         diffusivity: 1,
       }),
       wall_texture: new Material(new defs.Textured_Phong(), {
@@ -89,12 +93,12 @@ export class TinyBasketball extends Scene {
       ground_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.white,
         // specular: 1,
-        // ambient: .5,
-        diffusivity: .5,
+        ambient: .5,
+        diffusivity: 0.5,
       }),
       sides_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.red,
-      })
+      }),
     };
 
     /* Other Scene Variables */
@@ -104,17 +108,26 @@ export class TinyBasketball extends Scene {
       vec3(0, 0, 0),
       vec3(0, 1, 0)
     );
-    this.initial_camera_position = Mat4.translation(0, 0, -30);
-    // Light Position
-    this.light_position = vec4(10, 20, 8, 1);
     // dt
     this.dt = 0;
     // Backboard move flag
     this.backboard_move = true;
+    // Ball control
+    this.ball_direction = new Vector([0,0]);
+    this.ball_moving = false;
     // Object locations
     this.positions = {
+      light: vec4(10, 20, 8, 1),
+      camera: Mat4.translation(0, 0, -30),
       backboard: 0,
+      ball: Mat4.identity()
+      .times(Mat4.translation(0, -5, 15))
+      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
+      ball_origin: Mat4.identity()
+      .times(Mat4.translation(0, -5, 15))
+      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
     };
+    this.once = false;
     console.log("Sus");
   }
 
@@ -133,8 +146,16 @@ export class TinyBasketball extends Scene {
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
     }
-    program_state.set_camera(this.initial_camera_position);
-    
+    if (this.once === false) {
+      document.addEventListener("mouseup", (e) =>
+        this.get_throw_angle(e, context)
+      );
+      this.once = true;
+    }
+    // this.mouse = {"from_center": vec(0, 0)};
+    // Set up mouse response.  The last one stops us from reacting if the mouse leaves the canvas:
+
+    program_state.set_camera(this.positions.camera);
 
     program_state.projection_transform = Mat4.perspective(
       Math.PI / 4,
@@ -144,7 +165,7 @@ export class TinyBasketball extends Scene {
     );
 
     program_state.lights = [
-      new Light(this.light_position, color(1, 1, 1, 1), 1000),
+      new Light(this.positions.light, color(1, 1, 1, 1), 1000),
     ];
 
     this.t = program_state.animation_time / 1000;
@@ -161,13 +182,16 @@ export class TinyBasketball extends Scene {
   // Draws basketball
   draw_basketball(context, program_state) {
     // BALL
-    const ball_location = Mat4.identity()
-      .times(Mat4.translation(0, -5, 15))
-      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
+    if (this.ball_moving > 0) {
+        this.positions.ball = this.positions.ball.times(Mat4.translation(-this.ball_direction[0], -this.ball_direction[1], -.5));
+        this.ball_moving -= this.dt;
+    } else {
+        this.positions.ball = this.positions.ball_origin
+    }
     this.shapes.basketball.draw(
       context,
       program_state,
-      ball_location,
+      this.positions.ball,
       this.materials.basketball
     );
   }
@@ -198,13 +222,12 @@ export class TinyBasketball extends Scene {
       this.materials.ground_texture
     );
 
-
     // SIDES
     let sides_transform = Mat4.identity();
     sides_transform = sides_transform
       .times(Mat4.translation(23, 4, 0))
       .times(Mat4.scale(1, 14, 14))
-      .times(Mat4.rotation((3*Math.PI)/2, 0, 1, 0));
+      .times(Mat4.rotation((3 * Math.PI) / 2, 0, 1, 0));
     this.shapes.side_walls.draw(
       context,
       program_state,
@@ -215,14 +238,14 @@ export class TinyBasketball extends Scene {
     sides_transform = sides_transform
       .times(Mat4.translation(-23, 4, 0))
       .times(Mat4.scale(1, 14, 14))
-      .times(Mat4.rotation((Math.PI)/2, 0, 1, 0));
+      .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
     this.shapes.side_walls.draw(
       context,
       program_state,
       sides_transform,
       this.materials.sides_texture
     );
-}
+  }
 
   // Draws backboard
   draw_backboard(context, program_state) {
@@ -233,11 +256,11 @@ export class TinyBasketball extends Scene {
       }
       this.positions.backboard += this.dt * BACKBOARD.omega;
     }
-    
+
     const backboard_location = Mat4.identity()
       .times(BACKBOARD.center)
       .times(Mat4.scale(2.5, 2, 2))
-      .times(Mat4.translation(this.positions.backboard, 2, .8));
+      .times(Mat4.translation(this.positions.backboard, 2, 0.8));
     this.shapes.backboard.draw(
       context,
       program_state,
@@ -260,12 +283,28 @@ export class TinyBasketball extends Scene {
       .times(BACKBOARD.center)
       .times(Mat4.scale(30, 0.5, 1))
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
-      .times(Mat4.translation(-.5, 8, 0));
+      .times(Mat4.translation(-0.5, 8, 0));
     this.shapes.backboard_pole.draw(
       context,
       program_state,
       pole_location,
       this.materials.pole
     );
+  }
+
+  get_throw_angle(e, context) {
+    const rect = context.canvas.getBoundingClientRect();
+    const mouse_position = vec(
+      e.clientX - (rect.left + rect.right) / 2,
+      e.clientY - (rect.bottom + rect.top) / 2
+    );
+    const vecFrom = BALL_LOC.minus(mouse_position);
+    vecFrom.normalize();
+    // Math.asin(vecFrom.dot(VERTICAL));
+    // console.log("Normalized vector from", vecFrom);
+    // console.log("Angle from vertical", this.ball_direction);
+    this.ball_direction = vecFrom;
+    console.log(this.ball_direction);
+    this.ball_moving = .25;
   }
 }
