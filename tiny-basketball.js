@@ -34,7 +34,7 @@ const RAD_MAX = Math.PI * 2;
 const BACKBOARD = {
   omega: RAD_MAX / 5,
   center: Mat4.translation(0, 6, -8.5),
-  max: 5,
+  max: 4,
 };
 
 const BALL_LOC = new Vector([0, 260]);
@@ -251,7 +251,12 @@ export class TinyBasketball extends Scene {
   draw_backboard(context, program_state) {
     // BACKBOARD
     if (this.backboard_move) {
-      if (Math.abs(this.positions.backboard) > 5) {
+      if (Math.abs(this.positions.backboard) > BACKBOARD.max) {
+        if(this.positions.backboard > 0) {
+            this.positions.backboard = BACKBOARD.max;
+        } else {
+            this.positions.backboard = -BACKBOARD.max;
+        }
         BACKBOARD.omega = -BACKBOARD.omega;
       }
       this.positions.backboard += this.dt * BACKBOARD.omega;
