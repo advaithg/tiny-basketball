@@ -43,7 +43,7 @@ const BACKBOARD = {
 const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const BALL_VELOCITY = 5;
-
+const G = 9.8*3;
 const GAME_TIME = 45;
 
 export class TinyBasketball extends Scene {
@@ -113,15 +113,17 @@ export class TinyBasketball extends Scene {
         ambient: 0.8,
       }),
       timer_text_image: new Material(new defs.Textured_Phong(1), {
-        ambient: 1, 
+        ambient: 1,
         texture: new Texture("assets/text.png"),
       }),
       scoreboard: new Material(new defs.Textured_Phong(), {
         color: COLORS.yellow,
-        ambient: 0.8,
+        // ambient: 0,
+        // diffusivity: 0,
+        // specular: 0,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
-        ambient: 1, 
+        ambient: 1,
         texture: new Texture("assets/text.png"),
       }),
     };
@@ -141,6 +143,7 @@ export class TinyBasketball extends Scene {
     this.restart_game = false;
     // Score
     this.score = 0;
+    this.will_score = true;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
@@ -223,8 +226,8 @@ export class TinyBasketball extends Scene {
   // Draws and adds timer
   make_timer(context, program_state, t) {
     const timer_matrix = Mat4.identity()
-      .times(Mat4.translation(11.5,-4.5,2))
-      .times(Mat4.scale(4,2,1));
+      .times(Mat4.translation(11.5, -4.5, 2))
+      .times(Mat4.scale(4, 2, 1));
     this.shapes.timer.draw(
       context,
       program_state,
@@ -232,12 +235,12 @@ export class TinyBasketball extends Scene {
       this.materials.timer
     );
 
-    const time_left = Math.ceil(GAME_TIME-t);
+    const time_left = Math.ceil(GAME_TIME - t);
     const timer_text = time_left.toString();
     this.shapes.timer_text.set_string(timer_text, context.context);
     const timer_text_matrix = Mat4.identity()
-      .times(Mat4.translation(9.9,-4.8,2.1))
-      .times(Mat4.scale(2,2,1));
+      .times(Mat4.translation(9.9, -4.8, 2.1))
+      .times(Mat4.scale(2, 2, 1));
     this.shapes.timer_text.draw(
       context,
       program_state,
@@ -249,20 +252,20 @@ export class TinyBasketball extends Scene {
   // Draws and adds scoreboard
   make_scoreboard(context, program_state, score) {
     const scoreboard_matrix = Mat4.identity()
-      .times(Mat4.translation(-11.5,-4.5,2))
-      .times(Mat4.scale(4,2,1));
+      .times(Mat4.translation(-11.5, -4.5, 2))
+      .times(Mat4.scale(4, 2, 1));
     this.shapes.scoreboard.draw(
       context,
       program_state,
       scoreboard_matrix,
       this.materials.scoreboard
     );
-    
+
     const scoreboard_text = score.toString();
     this.shapes.scoreboard_text.set_string(scoreboard_text, context.context);
     const scoreboard_text_matrix = Mat4.identity()
-      .times(Mat4.translation(-9.9,-4.8,2.1))
-      .times(Mat4.scale(2,2,1));
+      .times(Mat4.translation(-9.9, -4.8, 2.1))
+      .times(Mat4.scale(2, 2, 1));
     this.shapes.scoreboard_text.draw(
       context,
       program_state,
@@ -287,6 +290,9 @@ export class TinyBasketball extends Scene {
       if (this.ball_timer >= ttl) {
         this.ball_moving = false;
         this.ball_timer = 0;
+        if (this.will_score) {
+            this.score += 1;
+        }
       } else {
         // irl distances
         //    from floor to rim:                        3m
@@ -307,12 +313,24 @@ export class TinyBasketball extends Scene {
 
         // figure out arc in y-z plane
         // then rotate to appropriate angle
-
-        this.positions.ball = Mat4.translation(0, -5, 15)
-          .times(Mat4.rotation(throw_angle, 0, 1, 0))
-          .times(Mat4.translation(0, r_y, -r_z))
-          .times(Mat4.translation(0, 5, -15))
-          .times(this.positions.ball_origin);
+        if (r_z < dd) {
+          this.positions.ball = Mat4.translation(0, -5, 15)
+            .times(Mat4.rotation(throw_angle, 0, 1, 0))
+            .times(Mat4.translation(0, r_y, -r_z))
+            .times(Mat4.translation(0, 5, -15))
+            .times(this.positions.ball_origin);
+            this.last = {
+                z: r_z
+            }
+            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) < 1.5;
+        } else {
+            this.positions.ball = Mat4.translation(0, -5, 15)
+            .times(Mat4.rotation(throw_angle, 0, 1, 0))
+            .times(Mat4.translation(0, r_y, -this.last.z))
+            .times(Mat4.translation(0, 5, -15))
+            .times(this.positions.ball_origin);
+            this.last.y -= half_g * this.dt;
+        }
 
         this.ball_timer += this.dt;
       }
@@ -405,15 +423,14 @@ export class TinyBasketball extends Scene {
       this.materials.phong
     );
     // HOOP/NET
-    const hoop_location = backboard_location
+    this.positions.hoop = backboard_location
       .times(Mat4.scale(0.4, 0.5, 0.5))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
       .times(Mat4.translation(0, 1, 1.5));
-    console.log(hoop_location);
     this.shapes.backboard_hoop.draw(
       context,
       program_state,
-      hoop_location,
+      this.positions.hoop,
       this.materials.phong.override({ color: COLORS.red })
     );
     // SLIDE POLE
