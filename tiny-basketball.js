@@ -93,7 +93,7 @@ export class TinyBasketball extends Scene {
       ground_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.white,
         // specular: 1,
-        ambient: .5,
+        ambient: 0.5,
         diffusivity: 0.5,
       }),
       sides_texture: new Material(new defs.Textured_Phong(), {
@@ -113,19 +113,22 @@ export class TinyBasketball extends Scene {
     // Backboard move flag
     this.backboard_move = true;
     // Ball control
-    this.ball_direction = new Vector([0,0]);
+    this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
+    this.ball_timer = 0;
     // Object locations
     this.positions = {
       light: vec4(10, 20, 8, 1),
       camera: Mat4.translation(0, 0, -30),
       backboard: 0,
       ball: Mat4.identity()
-      .times(Mat4.translation(0, -5, 15))
-      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
+        .times(Mat4.translation(0, -5, 15))
+        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+        .times(Mat4.scale(0.565, 0.565, 0.565)),
       ball_origin: Mat4.identity()
-      .times(Mat4.translation(0, -5, 15))
-      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
+        .times(Mat4.translation(0, -5, 15))
+        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+        .times(Mat4.scale(0.565, 0.565, 0.565)),
     };
     this.once = false;
     console.log("Sus");
@@ -182,12 +185,52 @@ export class TinyBasketball extends Scene {
   // Draws basketball
   draw_basketball(context, program_state) {
     // BALL
-    if (this.ball_moving > 0) {
-        this.positions.ball = this.positions.ball.times(Mat4.translation(-this.ball_direction[0], -this.ball_direction[1], -.5));
-        this.ball_moving -= this.dt;
+
+    const half_g = 20; // correct physics on a planet with 4x gravity of Earth
+    const tth = 1.0; // ball reaches y,z-values of hoop in 1 second
+    const ttl = 1.5; // ball disappears after 1.5 seconds, either continuing on arc trajectory or falling straight down (when scored)
+
+    const throw_angle = Math.atan(
+      this.ball_direction[0] / this.ball_direction[1]
+    );
+
+    if (this.ball_moving) {
+      if (this.ball_timer >= ttl) {
+        this.ball_moving = false;
+        this.ball_timer = 0;
+      } else {
+        // irl distances
+        //    from floor to rim:                        3m
+        //    from three-point line to center of hoop:  7.24m
+        //    ball diameter:                            0.24m
+        //    hoop diameter:                            0.46m
+
+        const dy = 9.125 - -5 + 1; // distance from floor to rim
+        const dz = 15 - -4.6; // distance from ball on three-point line to center of hoop
+        const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from y-z plane; dz * tan(throw_angle)
+        const dd = dz / Math.cos(throw_angle); // diagonal distance to hoop
+
+        let v_z = dd / tth;
+        let v_y = (dy + half_g * tth ** 2) / tth;
+
+        let r_z = v_z * this.ball_timer;
+        let r_y = v_y * this.ball_timer - half_g * this.ball_timer ** 2;
+
+        // figure out arc in y-z plane
+        // then rotate to appropriate angle
+
+        this.positions.ball = Mat4.translation(0, -5, 15)
+          .times(Mat4.rotation(throw_angle, 0, 1, 0))
+          .times(Mat4.translation(0, r_y, -r_z))
+          .times(Mat4.translation(0, 5, -15))
+          .times(this.positions.ball_origin);
+
+        this.ball_timer += this.dt;
+      }
     } else {
-        this.positions.ball = this.positions.ball_origin
+      this.positions.ball = this.positions.ball_origin;
     }
+
     this.shapes.basketball.draw(
       context,
       program_state,
@@ -252,10 +295,10 @@ export class TinyBasketball extends Scene {
     // BACKBOARD
     if (this.backboard_move) {
       if (Math.abs(this.positions.backboard) > BACKBOARD.max) {
-        if(this.positions.backboard > 0) {
-            this.positions.backboard = BACKBOARD.max;
+        if (this.positions.backboard > 0) {
+          this.positions.backboard = BACKBOARD.max;
         } else {
-            this.positions.backboard = -BACKBOARD.max;
+          this.positions.backboard = -BACKBOARD.max;
         }
         BACKBOARD.omega = -BACKBOARD.omega;
       }
@@ -277,6 +320,7 @@ export class TinyBasketball extends Scene {
       .times(Mat4.scale(0.4, 0.5, 0.5))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
       .times(Mat4.translation(0, 1, 1.5));
+    console.log(hoop_location);
     this.shapes.backboard_hoop.draw(
       context,
       program_state,
@@ -298,18 +342,21 @@ export class TinyBasketball extends Scene {
   }
 
   get_throw_angle(e, context) {
-    const rect = context.canvas.getBoundingClientRect();
-    const mouse_position = vec(
-      e.clientX - (rect.left + rect.right) / 2,
-      e.clientY - (rect.bottom + rect.top) / 2
-    );
-    const vecFrom = BALL_LOC.minus(mouse_position);
-    vecFrom.normalize();
-    // Math.asin(vecFrom.dot(VERTICAL));
-    // console.log("Normalized vector from", vecFrom);
-    // console.log("Angle from vertical", this.ball_direction);
-    this.ball_direction = vecFrom;
-    console.log(this.ball_direction);
-    this.ball_moving = .25;
+    // don't update ball_direction while ball is in motion
+    if (!this.ball_moving) {
+      const rect = context.canvas.getBoundingClientRect();
+      const mouse_position = vec(
+        e.clientX - (rect.left + rect.right) / 2,
+        e.clientY - (rect.bottom + rect.top) / 2
+      );
+      const vecFrom = BALL_LOC.minus(mouse_position);
+      vecFrom.normalize();
+      // Math.asin(vecFrom.dot(VERTICAL));
+      // console.log("Normalized vector from", vecFrom);
+      // console.log("Angle from vertical", this.ball_direction);
+      this.ball_direction = vecFrom;
+      console.log(this.ball_direction);
+      this.ball_moving = true;
+    }
   }
 }
