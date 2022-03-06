@@ -65,8 +65,9 @@ export class TinyBasketball extends Scene {
       backboard_hoop: new defs.Cylindrical_Tube(3, 15),
       backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
-      timer_and_scoreboard: new defs.Square(),
+      timer: new defs.Square(),
       timer_text: new Text_Line(3),
+      scoreboard: new defs.Square(),
       scoreboard_text: new Text_Line(3),
     };
 
@@ -107,13 +108,17 @@ export class TinyBasketball extends Scene {
       sides_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.red,
       }),
-      timer_and_scoreboard: new Material(new defs.Textured_Phong(), {
+      timer: new Material(new defs.Textured_Phong(), {
         color: COLORS.yellow,
         ambient: 0.8,
       }),
       timer_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1, 
         texture: new Texture("assets/text.png"),
+      }),
+      scoreboard: new Material(new defs.Textured_Phong(), {
+        color: COLORS.yellow,
+        ambient: 0.8,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1, 
@@ -220,11 +225,11 @@ export class TinyBasketball extends Scene {
     const timer_matrix = Mat4.identity()
       .times(Mat4.translation(11.5,-4.5,2))
       .times(Mat4.scale(4,2,1));
-    this.shapes.timer_and_scoreboard.draw(
+    this.shapes.timer.draw(
       context,
       program_state,
       timer_matrix,
-      this.materials.timer_and_scoreboard
+      this.materials.timer
     );
 
     const time_left = Math.ceil(GAME_TIME-t);
@@ -246,11 +251,11 @@ export class TinyBasketball extends Scene {
     const scoreboard_matrix = Mat4.identity()
       .times(Mat4.translation(-11.5,-4.5,2))
       .times(Mat4.scale(4,2,1));
-    this.shapes.timer_and_scoreboard.draw(
+    this.shapes.scoreboard.draw(
       context,
       program_state,
       scoreboard_matrix,
-      this.materials.timer_and_scoreboard
+      this.materials.scoreboard
     );
     
     const scoreboard_text = score.toString();
