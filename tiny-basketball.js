@@ -1,5 +1,7 @@
 import { defs, tiny } from "./examples/common.js";
 
+import { Text_Line } from "./examples/text-demo.js";
+
 const {
   Vector,
   Vector3,
@@ -23,6 +25,7 @@ const COLORS = {
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
   silver: hex_color("#bcbcbc"),
+  yellow: hex_color("#ffff00"),
 };
 
 const PATHS = {
@@ -40,6 +43,8 @@ const BACKBOARD = {
 const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const BALL_VELOCITY = 5;
+
+const GAME_TIME = 45;
 
 export class TinyBasketball extends Scene {
   /**
@@ -60,6 +65,8 @@ export class TinyBasketball extends Scene {
       backboard_hoop: new defs.Cylindrical_Tube(3, 15),
       backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
+      timer: new defs.Square(),
+      timer_text: new Text_Line(3),
     };
 
     this.shapes.wall2.arrays.texture_coord = [];
@@ -99,6 +106,14 @@ export class TinyBasketball extends Scene {
       sides_texture: new Material(new defs.Textured_Phong(), {
         color: COLORS.red,
       }),
+      timer: new Material(new defs.Textured_Phong(), {
+        color: COLORS.yellow,
+        ambient: 0.8,
+      }),
+      text_image: new Material(new defs.Textured_Phong(1), {
+        ambient: 1, 
+        texture: new Texture("assets/text.png"),
+      }),
     };
 
     /* Other Scene Variables */
@@ -112,6 +127,8 @@ export class TinyBasketball extends Scene {
     this.dt = 0;
     // Backboard move flag
     this.backboard_move = true;
+    // Restard Game flag
+    this.restart_game = false;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
@@ -139,6 +156,11 @@ export class TinyBasketball extends Scene {
       "Pause backboard",
       ["p"],
       () => (this.backboard_move = !this.backboard_move)
+    );
+    this.key_triggered_button(
+      "Restart Game",
+      ["q"],
+      () => (this.restart_game = true)
     );
   }
 
@@ -180,6 +202,34 @@ export class TinyBasketball extends Scene {
     this.draw_background(context, program_state);
     // BACKBOARD
     this.draw_backboard(context, program_state);
+    // TIMER
+    this.make_timer(context, program_state, this.t)
+  }
+
+  // Draws and adds timer
+  make_timer(context, program_state, t) {
+    const timer_matrix = Mat4.identity()
+      .times(Mat4.translation(11.5,-4.5,2))
+      .times(Mat4.scale(4,2,1));
+    this.shapes.timer.draw(
+      context,
+      program_state,
+      timer_matrix,
+      this.materials.timer
+    );
+
+    const time_left = Math.ceil(GAME_TIME-t);
+    const timer_text = time_left.toString();
+    this.shapes.timer_text.set_string(timer_text, context.context);
+    const timer_text_matrix = Mat4.identity()
+      .times(Mat4.translation(9.9,-4.8,2.1))
+      .times(Mat4.scale(2,2,1));
+    this.shapes.timer_text.draw(
+      context,
+      program_state,
+      timer_text_matrix,
+      this.materials.text_image
+    );
   }
 
   // Draws basketball
