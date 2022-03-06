@@ -322,7 +322,9 @@ export class TinyBasketball extends Scene {
             this.last = {
                 z: r_z
             }
-            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) < 1.5;
+            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) + this.dt * BACKBOARD.omega < 1.5;
+            console.log("Ball: ", this.positions.ball[0][3])
+            console.log("Ball: ", this.positions.hoop[0][3])
         } else {
             this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
@@ -461,7 +463,7 @@ export class TinyBasketball extends Scene {
       // console.log("Normalized vector from", vecFrom);
       // console.log("Angle from vertical", this.ball_direction);
       this.ball_direction = vecFrom;
-      console.log(this.ball_direction);
+    //   console.log(this.ball_direction);
       this.ball_moving = true;
     }
   }
