@@ -118,9 +118,7 @@ export class TinyBasketball extends Scene {
       }),
       scoreboard: new Material(new defs.Textured_Phong(), {
         color: COLORS.yellow,
-        // ambient: 0,
-        // diffusivity: 0,
-        // specular: 0,
+        ambient: 0.9,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
@@ -217,22 +215,30 @@ export class TinyBasketball extends Scene {
     this.draw_background(context, program_state);
     // BACKBOARD
     this.draw_backboard(context, program_state);
-    // TIMER
-    this.make_timer(context, program_state, this.t);
-    // SCOREBOARD
-    this.make_scoreboard(context, program_state, this.score);
+    // TIMER AND SCOREBOARD
+    this.make_timer_scoreboard(context, program_state, this.t, this.score);
   }
 
-  // Draws and adds timer
-  make_timer(context, program_state, t) {
+  // Draws and adds timer and scoreboard
+  make_timer_scoreboard(context, program_state, t, score) {
     const timer_matrix = Mat4.identity()
       .times(Mat4.translation(11.5, -4.5, 2))
       .times(Mat4.scale(4, 2, 1));
+    const scoreboard_matrix = Mat4.identity()
+      .times(Mat4.translation(-11.5, -4.5, 2))
+      .times(Mat4.scale(4, 2, 1));
+
     this.shapes.timer.draw(
       context,
       program_state,
       timer_matrix,
       this.materials.timer
+    );
+    this.shapes.scoreboard.draw(
+      context,
+      program_state,
+      scoreboard_matrix,
+      this.materials.scoreboard
     );
 
     const time_left = Math.ceil(GAME_TIME - t);
@@ -246,19 +252,6 @@ export class TinyBasketball extends Scene {
       program_state,
       timer_text_matrix,
       this.materials.timer_text_image
-    );
-  }
-
-  // Draws and adds scoreboard
-  make_scoreboard(context, program_state, score) {
-    const scoreboard_matrix = Mat4.identity()
-      .times(Mat4.translation(-11.5, -4.5, 2))
-      .times(Mat4.scale(4, 2, 1));
-    this.shapes.scoreboard.draw(
-      context,
-      program_state,
-      scoreboard_matrix,
-      this.materials.scoreboard
     );
 
     const scoreboard_text = score.toString();
