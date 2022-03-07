@@ -44,7 +44,7 @@ const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const BALL_VELOCITY = 5;
 const G = 9.8*3;
-const GAME_TIME = 45;
+const GAME_TIME = 30;
 
 export class TinyBasketball extends Scene {
   /**
@@ -138,7 +138,9 @@ export class TinyBasketball extends Scene {
     // Backboard move flag
     this.backboard_move = true;
     // Restart Game flag
-    this.restart_game = false;
+    this.game_ongoing = false;
+    // Time left
+    this.time_left = GAME_TIME;
     // Score
     this.score = 0;
     this.will_score = true;
@@ -166,18 +168,36 @@ export class TinyBasketball extends Scene {
 
   make_control_panel() {
     this.key_triggered_button(
+      "Start Game",
+      ["q"],
+      () => (this.game_ongoing = !this.game_ongoing)
+    );
+    this.key_triggered_button(
       "Pause backboard",
       ["p"],
       () => (this.backboard_move = !this.backboard_move)
     );
-    this.key_triggered_button(
-      "Restart Game",
-      ["q"],
-      () => (this.restart_game = true)
-    );
   }
 
   display(context, program_state) {
+
+    // stops game in 45 seconds until game is restarted
+    // sets locations when game is ongoing or stopped
+    if(this.time_left <= 0){
+      this.game_ongoing = false;
+    }
+    if(this.game_ongoing === false){
+      this.ball_moving = false;
+      this.backboard_move = false;
+      this.score = 0;
+      this.time_left = GAME_TIME;
+      this.positions.backboard = 0;
+    }
+    else{
+      this.time_left = this.time_left - this.dt;
+      this.backboard_move = true;
+    }
+
     // gets rid of control panel to prevent movement of camera
     if (!context.scratchpad.controls) {
       this.children.push(
@@ -216,7 +236,7 @@ export class TinyBasketball extends Scene {
     // BACKBOARD
     this.draw_backboard(context, program_state);
     // TIMER AND SCOREBOARD
-    this.make_timer_scoreboard(context, program_state, this.t, this.score);
+    this.make_timer_scoreboard(context, program_state, this.time_left, this.score);
   }
 
   // Draws and adds timer and scoreboard
@@ -241,7 +261,7 @@ export class TinyBasketball extends Scene {
       this.materials.scoreboard
     );
 
-    const time_left = Math.ceil(GAME_TIME - t);
+    const time_left = Math.ceil(t);
     const timer_text = time_left.toString();
     this.shapes.timer_text.set_string(timer_text, context.context);
     const timer_text_matrix = Mat4.identity()
