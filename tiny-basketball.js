@@ -199,11 +199,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    if (!context.scratchpad.controls) {
-      this.children.push(
-        (context.scratchpad.controls = new defs.Movement_Controls())
-      );
-    }
+    // if (!context.scratchpad.controls) {
+    //   this.children.push(
+    //     (context.scratchpad.controls = new defs.Movement_Controls())
+    //   );
+    // }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -335,7 +335,7 @@ export class TinyBasketball extends Scene {
             this.last = {
                 z: r_z
             }
-            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) + this.dt * BACKBOARD.omega < 1.5;
+            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) < 1.25;
             console.log("Ball: ", this.positions.ball[0][3])
             console.log("Ball: ", this.positions.hoop[0][3])
         } else {
