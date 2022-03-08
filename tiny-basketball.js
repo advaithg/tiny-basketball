@@ -26,6 +26,7 @@ const COLORS = {
   red: hex_color("#ff0000"),
   silver: hex_color("#bcbcbc"),
   yellow: hex_color("#ffff00"),
+  dark_blue: hex_color("#0000ff"),
 };
 
 const PATHS = {
@@ -69,6 +70,8 @@ export class TinyBasketball extends Scene {
       timer_text: new Text_Line(3),
       scoreboard: new defs.Square(),
       scoreboard_text: new Text_Line(3),
+      game_start: new defs.Square(),
+      game_start_text: new Text_Line(100),
     };
 
     this.shapes.wall2.arrays.texture_coord = [];
@@ -121,6 +124,14 @@ export class TinyBasketball extends Scene {
         ambient: 0.9,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
+        ambient: 1,
+        texture: new Texture("assets/text.png"),
+      }),
+      game_start: new Material(new defs.Textured_Phong(), {
+        color: COLORS.dark_blue,
+        ambient: 0.15,
+      }),
+      game_start_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
         texture: new Texture("assets/text.png"),
       }),
@@ -195,6 +206,7 @@ export class TinyBasketball extends Scene {
     if(this.game_ongoing === false){
       this.ball_moving = false;
       this.positions.backboard = 0;
+      this.time_left = GAME_TIME;
     }
     else{
       this.time_left = this.time_left - this.dt;
@@ -237,12 +249,12 @@ export class TinyBasketball extends Scene {
     this.draw_background(context, program_state);
     // BACKBOARD
     this.draw_backboard(context, program_state);
-    // TIMER AND SCOREBOARD
-    this.make_timer_scoreboard(context, program_state, this.time_left, this.score);
+    // TIMER AND SCOREBOARD (and game start sign)
+    this.make_timer_scoreboard(context, program_state, this.time_left, this.score, this.game_ongoing);
   }
 
-  // Draws and adds timer and scoreboard
-  make_timer_scoreboard(context, program_state, t, score) {
+  // Draws and adds timer and scoreboard and start game sign
+  make_timer_scoreboard(context, program_state, t, score, ongoing) {
     const timer_matrix = Mat4.identity()
       .times(Mat4.translation(11.5, -4.5, 2))
       .times(Mat4.scale(4, 2, 1));
@@ -262,6 +274,43 @@ export class TinyBasketball extends Scene {
       scoreboard_matrix,
       this.materials.scoreboard
     );
+
+    if(ongoing === false){
+      const sign_matrix = Mat4.identity()
+      .times(Mat4.translation(-0, 0.2, 15))
+      .times(Mat4.scale(3.3,2.3,1))
+      this.shapes.game_start.draw(
+        context,
+        program_state,
+        sign_matrix,
+        this.materials.game_start,
+      )
+      let sign_text_matrix = Mat4.identity()
+      .times(Mat4.translation(-2.8, 2, 15.1))
+      .times(Mat4.scale(0.15,0.2,1))
+
+      const text_strings = ["To start or stop the game", "press 'q'", "To pause the backboard", "press 'p'", "You have " + GAME_TIME.toString() + " secs to score", "as many goals as possible!", "Last game's score: " + score.toString() ];
+      let i = 0;
+
+      for (let line of text_strings.slice()){    
+        i = i+1;
+        this.shapes.game_start_text.set_string(line, context.context);
+        this.shapes.game_start_text.draw(
+          context,
+          program_state,
+          sign_text_matrix,
+          this.materials.game_start_text_image,
+        )
+        if(i % 2 === 1){
+          sign_text_matrix = sign_text_matrix
+          .times(Mat4.translation(0,-2.2,0))  
+        }
+        else {
+          sign_text_matrix = sign_text_matrix
+          .times(Mat4.translation(0,-3.5,0))  
+        }
+      }
+    }
 
     const time_left = Math.ceil(t);
     const timer_text = time_left.toString();
