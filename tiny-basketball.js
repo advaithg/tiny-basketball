@@ -188,14 +188,12 @@ export class TinyBasketball extends Scene {
     }
     if(this.game_ongoing === false){
       this.ball_moving = false;
-      this.backboard_move = false;
       this.score = 0;
       this.time_left = GAME_TIME;
       this.positions.backboard = 0;
     }
     else{
       this.time_left = this.time_left - this.dt;
-      this.backboard_move = true;
     }
 
     // gets rid of control panel to prevent movement of camera
