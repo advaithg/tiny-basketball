@@ -164,12 +164,14 @@ export class TinyBasketball extends Scene {
     console.log("Sus");
   }
 
+  start_game() {
+    this.game_ongoing = !this.game_ongoing;
+    this.score = 0;
+    this.time_left = GAME_TIME;
+  }
+
   make_control_panel() {
-    this.key_triggered_button(
-      "Start Game",
-      ["q"],
-      () => (this.game_ongoing = !this.game_ongoing)
-    );
+    this.key_triggered_button("Start Game", ["q"], () => this.start_game());
     this.key_triggered_button(
       "Pause backboard",
       ["p"],
@@ -178,28 +180,24 @@ export class TinyBasketball extends Scene {
   }
 
   display(context, program_state) {
-    // stops game in 45 seconds until game is restarted
+    // stops game in GAME_TIME seconds until game is restarted
     // sets locations when game is ongoing or stopped
     if (this.time_left <= 0) {
       this.game_ongoing = false;
     }
     if (this.game_ongoing === false) {
       this.ball_moving = false;
-      this.backboard_move = false;
-      this.score = 0;
-      this.time_left = GAME_TIME;
       this.positions.backboard = 0;
     } else {
       this.time_left = this.time_left - this.dt;
-      this.backboard_move = true;
     }
 
     // gets rid of control panel to prevent movement of camera
-    if (!context.scratchpad.controls) {
-      this.children.push(
-        (context.scratchpad.controls = new defs.Movement_Controls())
-      );
-    }
+    // if (!context.scratchpad.controls) {
+    //   this.children.push(
+    //     (context.scratchpad.controls = new defs.Movement_Controls())
+    //   );
+    // }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -337,9 +335,8 @@ export class TinyBasketball extends Scene {
             z: r_z,
           };
           this.will_score =
-            Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) +
-              this.dt * BACKBOARD.omega <
-            1.5;
+            Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) <
+            1.25;
           console.log("Ball: ", this.positions.ball[0][3]);
           console.log("Ball: ", this.positions.hoop[0][3]);
         } else {
