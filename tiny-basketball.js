@@ -334,10 +334,13 @@ export class TinyBasketball extends Scene {
 
     const scoreboard_text = score.toString();
     this.shapes.scoreboard_text.set_string(scoreboard_text, context.context);
-    const scoreboard_text_matrix = Mat4.identity()
+    let scoreboard_text_matrix = Mat4.identity()
       .times(Mat4.translation(-9.9, -4.8, 2.1))
       .times(Mat4.scale(2, 2, 1));
-    this.shapes.scoreboard_text.draw(
+    if(scoreboard_text.length > 1) {
+      scoreboard_text_matrix = scoreboard_text_matrix.times(Mat4.translation(-1.5,0,0));
+    }
+      this.shapes.scoreboard_text.draw(
       context,
       program_state,
       scoreboard_text_matrix,
