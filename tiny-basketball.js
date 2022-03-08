@@ -165,12 +165,18 @@ export class TinyBasketball extends Scene {
     this.once = false;
     console.log("Sus");
   }
+  
+  start_game() {
+    this.game_ongoing = !this.game_ongoing;
+    this.score = 0;
+    this.time_left = GAME_TIME;
+  }
 
   make_control_panel() {
     this.key_triggered_button(
       "Start Game",
       ["q"],
-      () => (this.game_ongoing = !this.game_ongoing)
+      () => this.start_game()
     );
     this.key_triggered_button(
       "Pause backboard",
@@ -181,15 +187,13 @@ export class TinyBasketball extends Scene {
 
   display(context, program_state) {
 
-    // stops game in 45 seconds until game is restarted
+    // stops game in GAME_TIME seconds until game is restarted
     // sets locations when game is ongoing or stopped
     if(this.time_left <= 0){
       this.game_ongoing = false;
     }
     if(this.game_ongoing === false){
       this.ball_moving = false;
-      this.score = 0;
-      this.time_left = GAME_TIME;
       this.positions.backboard = 0;
     }
     else{
