@@ -43,7 +43,7 @@ const BACKBOARD = {
 const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const BALL_VELOCITY = 5;
-const G = 9.8*3;
+const G = 9.8 * 3;
 const GAME_TIME = 30;
 
 export class TinyBasketball extends Scene {
@@ -99,9 +99,9 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.brick_wall),
       }),
-      ground_texture: new Material(new defs.Textured_Phong(), {
+      ground_texture: new Material(new Reflective_Phong(), {
         color: COLORS.white,
-        // specular: 1,
+        specular: 1,
         ambient: 0.5,
         diffusivity: 0.5,
       }),
@@ -155,12 +155,10 @@ export class TinyBasketball extends Scene {
       backboard: 0,
       ball: Mat4.identity()
         .times(Mat4.translation(0, -5, 15))
-        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-        .times(Mat4.scale(0.565, 0.565, 0.565)),
+        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
       ball_origin: Mat4.identity()
         .times(Mat4.translation(0, -5, 15))
-        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-        .times(Mat4.scale(0.565, 0.565, 0.565)),
+        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
     };
     this.once = false;
     console.log("Sus");
@@ -180,20 +178,18 @@ export class TinyBasketball extends Scene {
   }
 
   display(context, program_state) {
-
     // stops game in 45 seconds until game is restarted
     // sets locations when game is ongoing or stopped
-    if(this.time_left <= 0){
+    if (this.time_left <= 0) {
       this.game_ongoing = false;
     }
-    if(this.game_ongoing === false){
+    if (this.game_ongoing === false) {
       this.ball_moving = false;
       this.backboard_move = false;
       this.score = 0;
       this.time_left = GAME_TIME;
       this.positions.backboard = 0;
-    }
-    else{
+    } else {
       this.time_left = this.time_left - this.dt;
       this.backboard_move = true;
     }
@@ -236,7 +232,12 @@ export class TinyBasketball extends Scene {
     // BACKBOARD
     this.draw_backboard(context, program_state);
     // TIMER AND SCOREBOARD
-    this.make_timer_scoreboard(context, program_state, this.time_left, this.score);
+    this.make_timer_scoreboard(
+      context,
+      program_state,
+      this.time_left,
+      this.score
+    );
   }
 
   // Draws and adds timer and scoreboard
@@ -293,7 +294,7 @@ export class TinyBasketball extends Scene {
 
     const half_g = 20; // correct physics on a planet with 4x gravity of Earth
     const tth = 1.0; // ball reaches y,z-values of hoop in 1 second
-    const ttl = 1.5; // ball disappears after 1.5 seconds, either continuing on arc trajectory or falling straight down (when scored)
+    const ttl = 1.5; // ball disappears after 1.5 seconds; falls straight down either as a result of hitting wall or scoring in hoop
 
     const throw_angle = Math.atan(
       this.ball_direction[0] / this.ball_direction[1]
@@ -304,7 +305,7 @@ export class TinyBasketball extends Scene {
         this.ball_moving = false;
         this.ball_timer = 0;
         if (this.will_score) {
-            this.score += 1;
+          this.score += 1;
         }
       } else {
         // irl distances
@@ -313,7 +314,7 @@ export class TinyBasketball extends Scene {
         //    ball diameter:                            0.24m
         //    hoop diameter:                            0.46m
 
-        const dy = 9.125 - -5 + 1; // distance from floor to rim
+        const dy = 9.125 - -5 + 1; // distance from floor to rim; +1 since we aim above the rim
         const dz = 15 - -4.6; // distance from ball on three-point line to center of hoop
         const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from y-z plane; dz * tan(throw_angle)
         const dd = dz / Math.cos(throw_angle); // diagonal distance to hoop
@@ -332,19 +333,22 @@ export class TinyBasketball extends Scene {
             .times(Mat4.translation(0, r_y, -r_z))
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
-            this.last = {
-                z: r_z
-            }
-            this.will_score = Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) + this.dt * BACKBOARD.omega < 1.5;
-            console.log("Ball: ", this.positions.ball[0][3])
-            console.log("Ball: ", this.positions.hoop[0][3])
+          this.last = {
+            z: r_z,
+          };
+          this.will_score =
+            Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) +
+              this.dt * BACKBOARD.omega <
+            1.5;
+          console.log("Ball: ", this.positions.ball[0][3]);
+          console.log("Ball: ", this.positions.hoop[0][3]);
         } else {
-            this.positions.ball = Mat4.translation(0, -5, 15)
+          this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
             .times(Mat4.translation(0, r_y, -this.last.z))
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
-            this.last.y -= half_g * this.dt;
+          this.last.y -= half_g * this.dt;
         }
 
         this.ball_timer += this.dt;
@@ -476,8 +480,29 @@ export class TinyBasketball extends Scene {
       // console.log("Normalized vector from", vecFrom);
       // console.log("Angle from vertical", this.ball_direction);
       this.ball_direction = vecFrom;
-    //   console.log(this.ball_direction);
+      // console.log(this.ball_direction);
       this.ball_moving = true;
     }
+  }
+}
+
+class Reflective_Phong extends defs.Textured_Phong {
+  fragment_glsl_code() {
+    return (
+      this.shared_glsl_code() +
+      `
+          varying vec2 f_tex_coord;
+          uniform sampler2D texture;
+          uniform float animation_time;
+          void main(){
+              // Sample the texture image in the correct place:
+              vec4 tex_color = texture2D( texture, f_tex_coord );
+              if( tex_color.w < .01 ) discard;
+                                                                       // Compute an initial (ambient) color:
+              gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                                                                       // Compute the final color with contributions from lights:
+              gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
+      } `
+    );
   }
 }
