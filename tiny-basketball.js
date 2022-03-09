@@ -415,9 +415,7 @@ export class TinyBasketball extends Scene {
           };
           this.will_score =
             Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) <
-            1.25;
-          console.log("Ball: ", this.positions.ball[0][3]);
-          console.log("Ball: ", this.positions.hoop[0][3]);
+            1.75;
         } else {
           this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
@@ -552,11 +550,14 @@ export class TinyBasketball extends Scene {
       );
       const vecFrom = BALL_LOC.minus(mouse_position);
       vecFrom.normalize();
-      // Math.asin(vecFrom.dot(VERTICAL));
-      // console.log("Normalized vector from", vecFrom);
-      // console.log("Angle from vertical", this.ball_direction);
       this.ball_direction = vecFrom;
-      // console.log(this.ball_direction);
+      if (Math.abs(this.ball_direction[0]) > .6) {
+          const xSign = this.ball_direction[0] < 0 ? -1 : 1;
+          const ySign = this.ball_direction[1] < 0 ? -1 : 1;
+          this.ball_direction[0] = .6 * xSign;
+          this.ball_direction[1] = .8 * ySign;
+      }
+      console.log(this.ball_direction);
       this.ball_moving = true;
     }
   }
