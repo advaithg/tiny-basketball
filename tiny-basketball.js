@@ -32,7 +32,7 @@ const COLORS = {
 const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
   basketball: "assets/basketball.png",
-  basketball_net: "assets/net_and_rim_4.png",
+  basketball_net: "assets/net_and_rim_5.png",
 };
 
 const RAD_MAX = Math.PI * 2;
