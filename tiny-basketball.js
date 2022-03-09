@@ -32,6 +32,7 @@ const COLORS = {
 const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
   basketball: "assets/basketball.png",
+  basketball_net: "assets/net_and_rim_4.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -43,8 +44,6 @@ const BACKBOARD = {
 
 const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
-const BALL_VELOCITY = 5;
-const G = 9.8 * 3;
 const GAME_TIME = 30;
 
 export class TinyBasketball extends Scene {
@@ -63,7 +62,8 @@ export class TinyBasketball extends Scene {
       wall1: new defs.Square(),
       wall2: new defs.Square(),
       backboard: new defs.Square(),
-      backboard_hoop: new defs.Cylindrical_Tube(3, 15),
+      backboard_hoop: new defs.Cylindrical_Tube(50, 50),
+      backboard_hoop_0: new defs.Cylindrical_Tube(50, 50),
       backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
       timer: new defs.Square(),
@@ -81,10 +81,24 @@ export class TinyBasketball extends Scene {
       this.shapes.wall2.arrays.texture_coord.push(next);
     });
 
+    this.shapes.backboard_hoop.arrays.texture_coord = [];
+    this.shapes.backboard_hoop_0.arrays.texture_coord.forEach((x, i) => {
+      const next = new Vector(
+        this.shapes.backboard_hoop_0.arrays.texture_coord[i]
+      );
+      next.scale_by(1.0 / 50.0);
+      this.shapes.backboard_hoop.arrays.texture_coord.push(next);
+    });
+
     // Materials
     this.materials = {
-      phong: new Material(new defs.Textured_Phong(), {
+      backboard: new Material(new defs.Phong_Shader(), {
         color: COLORS.white,
+      }),
+      basketball_net: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.basketball_net),
       }),
       basketball: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
@@ -172,7 +186,7 @@ export class TinyBasketball extends Scene {
         .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
     };
     this.once = false;
-    console.log("Sus");
+    console.log("sus");
   }
 
   start_game() {
@@ -237,10 +251,10 @@ export class TinyBasketball extends Scene {
 
     // BASKETBALL
     this.draw_basketball(context, program_state);
-    // BACKGROUND
-    this.draw_background(context, program_state);
     // BACKBOARD
     this.draw_backboard(context, program_state);
+    // BACKGROUND
+    this.draw_background(context, program_state);
     // TIMER AND SCOREBOARD (and game start sign)
     this.make_timer_scoreboard(
       context,
@@ -337,10 +351,12 @@ export class TinyBasketball extends Scene {
     let scoreboard_text_matrix = Mat4.identity()
       .times(Mat4.translation(-9.9, -4.8, 2.1))
       .times(Mat4.scale(2, 2, 1));
-    if(scoreboard_text.length > 1) {
-      scoreboard_text_matrix = scoreboard_text_matrix.times(Mat4.translation(-1.5,0,0));
+    if (scoreboard_text.length > 1) {
+      scoreboard_text_matrix = scoreboard_text_matrix.times(
+        Mat4.translation(-1.5, 0, 0)
+      );
     }
-      this.shapes.scoreboard_text.draw(
+    this.shapes.scoreboard_text.draw(
       context,
       program_state,
       scoreboard_text_matrix,
@@ -352,9 +368,9 @@ export class TinyBasketball extends Scene {
   draw_basketball(context, program_state) {
     // BALL
 
-    const half_g = 20; // correct physics on a planet with 4x gravity of Earth
-    const tth = 1.0; // ball reaches y,z-values of hoop in 1 second
-    const ttl = 1.5; // ball disappears after 1.5 seconds; falls straight down either as a result of hitting wall or scoring in hoop
+    const half_g = 30.0; // correct physics on a planet with ~(2 * half_g / 10)x gravity of Earth
+    const tth = 0.8; // ball reaches y,z-values of hoop in tth second
+    const ttl = 1.25; // ball disappears after ttl seconds; falls straight down either as a result of hitting wall or scoring in hoop
 
     const throw_angle = Math.atan(
       this.ball_direction[0] / this.ball_direction[1]
@@ -374,7 +390,8 @@ export class TinyBasketball extends Scene {
         //    ball diameter:                            0.24m
         //    hoop diameter:                            0.46m
 
-        const dy = 9.125 - -5 + 1; // distance from floor to rim; +1 since we aim above the rim
+        const rim_offset = 2.0;
+        const dy = 9.125 - -5 + rim_offset; // distance from floor to rim; + rim_offset since we aim above the rim
         const dz = 15 - -4.6; // distance from ball on three-point line to center of hoop
         const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from y-z plane; dz * tan(throw_angle)
         const dd = dz / Math.cos(throw_angle); // diagonal distance to hoop
@@ -498,18 +515,7 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       backboard_location,
-      this.materials.phong
-    );
-    // HOOP/NET
-    this.positions.hoop = backboard_location
-      .times(Mat4.scale(0.4, 0.5, 0.5))
-      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-      .times(Mat4.translation(0, 1, 1.5));
-    this.shapes.backboard_hoop.draw(
-      context,
-      program_state,
-      this.positions.hoop,
-      this.materials.phong.override({ color: COLORS.red })
+      this.materials.backboard
     );
     // SLIDE POLE
     const pole_location = Mat4.identity()
@@ -522,6 +528,17 @@ export class TinyBasketball extends Scene {
       program_state,
       pole_location,
       this.materials.pole
+    );
+    // HOOP/NET
+    this.positions.hoop = backboard_location
+      .times(Mat4.scale(0.4, 1.1, 0.5))
+      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+      .times(Mat4.translation(0, 1, 1.5));
+    this.shapes.backboard_hoop.draw(
+      context,
+      program_state,
+      this.positions.hoop,
+      this.materials.basketball_net
     );
   }
 
