@@ -413,16 +413,21 @@ export class TinyBasketball extends Scene {
           this.last = {
             z: r_z,
           };
-          this.will_score =
-            Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) <
-            1.75;
         } else {
+          if (Math.abs(this.positions.ball[1][3] - this.positions.hoop[1][3]) < .1) {
+            //   console.log("ball:",this.positions.ball);
+            //   console.log("hoop:",this.positions.hoop);
+              this.will_score =
+                Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) <
+                1.75;   
+          } 
           this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
             .times(Mat4.translation(0, r_y, -this.last.z))
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
           this.last.y -= half_g * this.dt;
+
         }
 
         this.ball_timer += this.dt;
