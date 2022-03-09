@@ -44,7 +44,7 @@ const BACKBOARD = {
 
 const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
-const GAME_TIME = 30;
+const GAME_TIME = 45;
 
 export class TinyBasketball extends Scene {
   /**
