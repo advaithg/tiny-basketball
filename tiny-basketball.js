@@ -180,11 +180,12 @@ export class TinyBasketball extends Scene {
     this.time_left = GAME_TIME;
     // Score
     this.score = 0;
-    this.will_score = false;
+    this.will_score = true;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
     this.ball_timer = 0;
+    this.in_net = false;
     // Object locations
     this.positions = {
       light: vec4(10, 20, 8, 1),
@@ -236,11 +237,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    if (!context.scratchpad.controls) {
+    /*if (!context.scratchpad.controls) {
       this.children.push(
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
-    }
+    }*/
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -399,8 +400,9 @@ export class TinyBasketball extends Scene {
   draw_basketball(context, program_state) {
     // BALL
 
-    const half_g = 30.0; // correct physics on a planet with ~(2 * half_g / 10)x gravity of Earth
+    const half_g = 30.0; // correct physics on a planet with ~(2 * half_g / 9.8)x gravity of Earth
     const tth = 0.8; // ball reaches y,z-values of hoop in tth second
+    const ttn = tth + 0.1; // ball reaches net
     const ttl = 1.25; // ball disappears after ttl seconds; falls straight down either as a result of hitting wall or scoring in hoop
 
     const throw_angle = Math.atan(
@@ -408,6 +410,9 @@ export class TinyBasketball extends Scene {
     );
 
     if (this.ball_moving) {
+      if (this.ball_timer >= ttn) {
+        this.in_net = true;
+      }
       if (this.ball_timer >= ttl) {
         this.ball_moving = false;
         this.ball_timer = 0;
@@ -422,9 +427,11 @@ export class TinyBasketball extends Scene {
         //    hoop diameter:                            0.46m
 
         const rim_offset = 2.0;
-        const dy = 9.125 - -5 + rim_offset; // distance from floor to rim; + rim_offset since we aim above the rim
-        const dz = 15 - -4.6; // distance from ball on three-point line to center of hoop
-        const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from y-z plane; dz * tan(throw_angle)
+        const rim_y = 8.6625;
+        const rim_z = -4.375;
+        const dy = rim_y - -5 + rim_offset; // distance from floor to rim; + rim_offset since we aim above the rim
+        const dz = 15 - rim_z; // distance from ball on three-point line to center of hoop
+        const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from yz-plane; dz * tan(throw_angle)
         const dd = dz / Math.cos(throw_angle); // diagonal distance to hoop
 
         let v_z = dd / tth;
@@ -433,7 +440,7 @@ export class TinyBasketball extends Scene {
         let r_z = v_z * this.ball_timer;
         let r_y = v_y * this.ball_timer - half_g * this.ball_timer ** 2;
 
-        // figure out arc in y-z plane
+        // figure out arc in yz-plane
         // then rotate to appropriate angle
         if (r_z < dd) {
           this.positions.ball = Mat4.translation(0, -5, 15)
@@ -448,8 +455,8 @@ export class TinyBasketball extends Scene {
           if (
             Math.abs(this.positions.ball[1][3] - this.positions.net[1][3]) < 0.1
           ) {
-            //   console.log("ball:", this.positions.ball);
-            //   console.log("hoop:", this.positions.net);
+            //   console.log("ball: ", this.positions.ball);
+            //   console.log("hoop: ", this.positions.net);
             this.will_score =
               Math.abs(this.positions.ball[0][3] - this.positions.net[0][3]) <
               1.75;
