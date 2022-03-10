@@ -32,7 +32,8 @@ const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
   basketball: "assets/basketball.png",
   net: "assets/net.png",
-  orange: "assets/orange.png",
+  orange: "assets/orange.png", // coloring a phong shader just doesn't hit the same
+  backboard: "assets/backboard.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -99,8 +100,10 @@ export class TinyBasketball extends Scene {
 
     // Materials
     this.materials = {
-      backboard: new Material(new defs.Phong_Shader(), {
-        color: COLORS.white,
+      backboard: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.backboard),
       }),
       rim: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
@@ -108,7 +111,7 @@ export class TinyBasketball extends Scene {
         texture: new Texture(PATHS.orange),
       }),
       net: new Material(new defs.Textured_Phong(), {
-        color: COLORS.white,
+        color: COLORS.black, // can't decide if white or black looks better
         ambient: 1,
         texture: new Texture(PATHS.net),
       }),
@@ -351,7 +354,7 @@ export class TinyBasketball extends Scene {
           sign_text_matrix,
           this.materials.game_start_text_image
         );
-        if (i % 2 === 1 || i === 8) {
+        if (i % 2 === 1 || i === 8 /* keep stats together */) {
           sign_text_matrix = sign_text_matrix.times(
             Mat4.translation(0, -2.2, 0)
           );
@@ -430,8 +433,8 @@ export class TinyBasketball extends Scene {
         //    hoop diameter:                            0.46m
 
         const rim_offset = 2.0;
-        const rim_y = 8.6625;
-        const rim_z = -4.375;
+        const rim_y = this.positions.rim[1][3];
+        const rim_z = this.positions.rim[2][3];
         const dy = rim_y - -5 + rim_offset; // distance from floor to rim; + rim_offset since we aim above the rim
         const dz = 15 - rim_z; // distance from ball on three-point line to center of hoop
         const dx = -dz * (this.ball_direction[0] / this.ball_direction[1]); // distance from yz-plane; dz * tan(throw_angle)
@@ -578,7 +581,7 @@ export class TinyBasketball extends Scene {
     this.positions.rim = backboard_location
       .times(Mat4.scale(0.4, 1.1, 0.5))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-      .times(Mat4.translation(0, 1.15, 0.85));
+      .times(Mat4.translation(0, 1.15, 0.59));
 
     this.shapes.rim.draw(
       context,
@@ -591,7 +594,7 @@ export class TinyBasketball extends Scene {
 
     if (this.in_net && this.net_timer <= 0.3) {
       net_shear =
-        0.1 * // scale shear
+        0.15 * // scale shear
         this.positions.net[0][3] * // shear proportional to x-coordinate of hoop (including sign)
         Math.sin((2 * Math.PI * this.net_timer) / 3);
       this.net_timer += this.dt;
@@ -599,7 +602,7 @@ export class TinyBasketball extends Scene {
 
     this.positions.net = backboard_location
       .times(Mat4.scale(0.4, 1.1, 0.5))
-      .times(Mat4.translation(0, -0.8, 1.15))
+      .times(Mat4.translation(0, -0.56, 1.15))
       .times(Mat4.rotation(Math.PI / 4, 0, 1, 0)) // rotate so shear is in xz-plane
       .times(
         this.backboard_move && this.game_ongoing
