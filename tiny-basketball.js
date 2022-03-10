@@ -25,14 +25,14 @@ const COLORS = {
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
   silver: hex_color("#bcbcbc"),
-  yellow: hex_color("#ffff00"),
   dark_blue: hex_color("#0000ff"),
 };
 
 const PATHS = {
   brick_wall: "assets/brick-wall.jpeg",
   basketball: "assets/basketball.png",
-  basketball_net: "assets/net_and_rim_5.png",
+  net: "assets/net.png",
+  orange: "assets/orange.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -47,10 +47,6 @@ const VERTICAL = new Vector([0, 1]);
 const GAME_TIME = 45;
 
 export class TinyBasketball extends Scene {
-  /**
-   *  **Base_scene** is a Scene that can be added to any display canvas.
-   *  Setup the shapes, materials, camera, and lighting here.
-   */
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
     super();
@@ -62,8 +58,21 @@ export class TinyBasketball extends Scene {
       wall1: new defs.Square(),
       wall2: new defs.Square(),
       backboard: new defs.Square(),
-      backboard_hoop: new defs.Cylindrical_Tube(50, 50),
-      backboard_hoop_0: new defs.Cylindrical_Tube(50, 50),
+      rim: new defs.Surface_Of_Revolution(
+        50,
+        50,
+        Vector3.cast([0, 1.15, 0.05], [0, 1.15, -0.05])
+      ),
+      net_0: new defs.Surface_Of_Revolution(
+        50,
+        50,
+        Vector3.cast([0, 0.75, 0.5], [0, 1, -0.5])
+      ),
+      net: new defs.Surface_Of_Revolution(
+        50,
+        50,
+        Vector3.cast([0, 0.75, 0.5], [0, 1, -0.5])
+      ),
       backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
       timer: new defs.Square(),
@@ -81,13 +90,11 @@ export class TinyBasketball extends Scene {
       this.shapes.wall2.arrays.texture_coord.push(next);
     });
 
-    this.shapes.backboard_hoop.arrays.texture_coord = [];
-    this.shapes.backboard_hoop_0.arrays.texture_coord.forEach((x, i) => {
-      const next = new Vector(
-        this.shapes.backboard_hoop_0.arrays.texture_coord[i]
-      );
+    this.shapes.net.arrays.texture_coord = [];
+    this.shapes.net_0.arrays.texture_coord.forEach((x, i) => {
+      const next = new Vector(this.shapes.net_0.arrays.texture_coord[i]);
       next.scale_by(1.0 / 50.0);
-      this.shapes.backboard_hoop.arrays.texture_coord.push(next);
+      this.shapes.net.arrays.texture_coord.push(next);
     });
 
     // Materials
@@ -95,10 +102,15 @@ export class TinyBasketball extends Scene {
       backboard: new Material(new defs.Phong_Shader(), {
         color: COLORS.white,
       }),
-      basketball_net: new Material(new defs.Textured_Phong(), {
+      rim: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
         ambient: 1,
-        texture: new Texture(PATHS.basketball_net),
+        texture: new Texture(PATHS.orange),
+      }),
+      net: new Material(new defs.Textured_Phong(), {
+        color: COLORS.white,
+        ambient: 1,
+        texture: new Texture(PATHS.net),
       }),
       basketball: new Material(new defs.Textured_Phong(), {
         color: COLORS.black,
@@ -122,26 +134,26 @@ export class TinyBasketball extends Scene {
         ambient: 0.5,
         diffusivity: 0.5,
       }),
-      sides_texture: new Material(new defs.Textured_Phong(), {
+      sides_texture: new Material(new defs.Phong_Shader(), {
         color: COLORS.red,
       }),
-      timer: new Material(new defs.Textured_Phong(), {
-        color: COLORS.yellow,
+      timer: new Material(new defs.Phong_Shader(), {
+        color: COLORS.black,
         ambient: 0.8,
       }),
       timer_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
         texture: new Texture("assets/text.png"),
       }),
-      scoreboard: new Material(new defs.Textured_Phong(), {
-        color: COLORS.yellow,
+      scoreboard: new Material(new defs.Phong_Shader(), {
+        color: COLORS.black,
         ambient: 0.9,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
         texture: new Texture("assets/text.png"),
       }),
-      game_start: new Material(new defs.Textured_Phong(), {
+      game_start: new Material(new defs.Phong_Shader(), {
         color: COLORS.dark_blue,
         ambient: 0.15,
       }),
@@ -168,7 +180,7 @@ export class TinyBasketball extends Scene {
     this.time_left = GAME_TIME;
     // Score
     this.score = 0;
-    this.will_score = true;
+    this.will_score = false;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
@@ -186,10 +198,14 @@ export class TinyBasketball extends Scene {
         .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)),
     };
     this.once = false;
+    this.session_scores = [];
     console.log("sus");
   }
 
   start_game() {
+    if (this.game_ongoing) {
+      this.session_scores.push(this.score);
+    }
     this.game_ongoing = !this.game_ongoing;
     this.score = 0;
     this.time_left = GAME_TIME;
@@ -209,6 +225,7 @@ export class TinyBasketball extends Scene {
     // sets locations when game is ongoing or stopped
     if (this.time_left <= 0) {
       this.game_ongoing = false;
+      this.session_scores.push(this.score);
     }
     if (this.game_ongoing === false) {
       this.ball_moving = false;
@@ -219,11 +236,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    // if (!context.scratchpad.controls) {
-    //   this.children.push(
-    //     (context.scratchpad.controls = new defs.Movement_Controls())
-    //   );
-    // }
+    if (!context.scratchpad.controls) {
+      this.children.push(
+        (context.scratchpad.controls = new defs.Movement_Controls())
+      );
+    }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -252,7 +269,7 @@ export class TinyBasketball extends Scene {
     // BASKETBALL
     this.draw_basketball(context, program_state);
     // BACKBOARD
-    this.draw_backboard(context, program_state);
+    this.draw_backboard(context, program_state); // backboard has to be drawn before background for net texture to work corectly (???)
     // BACKGROUND
     this.draw_background(context, program_state);
     // TIMER AND SCOREBOARD (and game start sign)
@@ -289,8 +306,8 @@ export class TinyBasketball extends Scene {
 
     if (ongoing === false) {
       const sign_matrix = Mat4.identity()
-        .times(Mat4.translation(-0, 0.2, 15))
-        .times(Mat4.scale(3.3, 2.3, 1));
+        .times(Mat4.translation(0, -0.13, 15))
+        .times(Mat4.scale(3.5, 2.7, 1));
       this.shapes.game_start.draw(
         context,
         program_state,
@@ -298,18 +315,29 @@ export class TinyBasketball extends Scene {
         this.materials.game_start
       );
       let sign_text_matrix = Mat4.identity()
-        .times(Mat4.translation(-2.8, 2, 15.1))
+        .times(Mat4.translation(-3.03, 2, 15.1))
         .times(Mat4.scale(0.15, 0.2, 1));
 
       const text_strings = [
-        "To start or stop the game",
+        "To start or stop the game,",
         "press 'q'",
-        "To pause the backboard",
+        "To pause the backboard,",
         "press 'p'",
-        "You have " + GAME_TIME.toString() + " secs to score",
-        "as many goals as possible!",
-        "Last game's score: " + score.toString(),
+        "You have " + GAME_TIME.toString() + " seconds to score",
+        "as many points as possible!",
+        "Last game's score: " +
+          (this.session_scores.length >= 1
+            ? this.session_scores[this.session_scores.length - 1]
+            : 0
+          ).toString(),
+        "Session high score: " +
+          (this.session_scores.length >= 1
+            ? Math.max(...this.session_scores)
+            : 0
+          ).toString(),
+        "Games played: " + this.session_scores.length.toString(),
       ];
+
       let i = 0;
 
       for (let line of text_strings.slice()) {
@@ -321,7 +349,7 @@ export class TinyBasketball extends Scene {
           sign_text_matrix,
           this.materials.game_start_text_image
         );
-        if (i % 2 === 1) {
+        if (i % 2 === 1 || i === 8) {
           sign_text_matrix = sign_text_matrix.times(
             Mat4.translation(0, -2.2, 0)
           );
@@ -336,9 +364,12 @@ export class TinyBasketball extends Scene {
     const time_left = Math.ceil(t);
     const timer_text = time_left.toString();
     this.shapes.timer_text.set_string(timer_text, context.context);
-    const timer_text_matrix = Mat4.identity()
+    let timer_text_matrix = Mat4.identity()
       .times(Mat4.translation(9.9, -4.8, 2.1))
       .times(Mat4.scale(2, 2, 1));
+    if (timer_text.length === 1) {
+      timer_text_matrix = timer_text_matrix.times(Mat4.translation(1.5, 0, 0));
+    }
     this.shapes.timer_text.draw(
       context,
       program_state,
@@ -414,20 +445,21 @@ export class TinyBasketball extends Scene {
             z: r_z,
           };
         } else {
-          if (Math.abs(this.positions.ball[1][3] - this.positions.hoop[1][3]) < .1) {
-            //   console.log("ball:",this.positions.ball);
-            //   console.log("hoop:",this.positions.hoop);
-              this.will_score =
-                Math.abs(this.positions.ball[0][3] - this.positions.hoop[0][3]) <
-                1.75;   
-          } 
+          if (
+            Math.abs(this.positions.ball[1][3] - this.positions.net[1][3]) < 0.1
+          ) {
+            //   console.log("ball:", this.positions.ball);
+            //   console.log("hoop:", this.positions.net);
+            this.will_score =
+              Math.abs(this.positions.ball[0][3] - this.positions.net[0][3]) <
+              1.75;
+          }
           this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
             .times(Mat4.translation(0, r_y, -this.last.z))
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
           this.last.y -= half_g * this.dt;
-
         }
 
         this.ball_timer += this.dt;
@@ -532,16 +564,43 @@ export class TinyBasketball extends Scene {
       pole_location,
       this.materials.pole
     );
-    // HOOP/NET
-    this.positions.hoop = backboard_location
+    // HOOP/RIM/NET
+    this.positions.rim = backboard_location
       .times(Mat4.scale(0.4, 1.1, 0.5))
       .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-      .times(Mat4.translation(0, 1, 1.5));
-    this.shapes.backboard_hoop.draw(
+      .times(Mat4.translation(0, 1.15, 0.85));
+
+    this.shapes.rim.draw(
       context,
       program_state,
-      this.positions.hoop,
-      this.materials.basketball_net
+      this.positions.rim,
+      this.materials.rim
+    );
+
+    const net_shear = 0.1 * Math.sin((2 * Math.PI * this.t) / 3);
+
+    this.positions.net = backboard_location
+      .times(Mat4.scale(0.4, 1.1, 0.5))
+      .times(Mat4.translation(0, -0.8, 1.15))
+      .times(Mat4.rotation(Math.PI / 4, 0, 1, 0)) // rotate so shear is in xz-plane
+      .times(
+        this.backboard_move && this.game_ongoing
+          ? // prettier-ignore
+            Matrix.of(
+          [1, net_shear, 0, 0], 
+          [0,         1, 0, 0], 
+          [0, net_shear, 1, 0], 
+          [0,         0, 0, 1])
+          : Mat4.identity()
+      )
+      .times(Mat4.translation(0, -0.5, 0)) // bring top center to origin
+      .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
+
+    this.shapes.net.draw(
+      context,
+      program_state,
+      this.positions.net,
+      this.materials.net
     );
   }
 
@@ -556,11 +615,11 @@ export class TinyBasketball extends Scene {
       const vecFrom = BALL_LOC.minus(mouse_position);
       vecFrom.normalize();
       this.ball_direction = vecFrom;
-      if (Math.abs(this.ball_direction[0]) > .6) {
-          const xSign = this.ball_direction[0] < 0 ? -1 : 1;
-          const ySign = this.ball_direction[1] < 0 ? -1 : 1;
-          this.ball_direction[0] = .6 * xSign;
-          this.ball_direction[1] = .8 * ySign;
+      if (Math.abs(this.ball_direction[0]) > 0.6) {
+        const xSign = this.ball_direction[0] < 0 ? -1 : 1;
+        const ySign = this.ball_direction[1] < 0 ? -1 : 1;
+        this.ball_direction[0] = 0.6 * xSign;
+        this.ball_direction[1] = 0.8 * ySign;
       }
       console.log(this.ball_direction);
       this.ball_moving = true;
