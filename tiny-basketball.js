@@ -459,13 +459,11 @@ export class TinyBasketball extends Scene {
           };
         } else {
           if (
-            Math.abs(this.positions.ball[1][3] - this.positions.net[1][3]) < 0.1
+            Math.abs(this.positions.ball[1][3] - this.positions.net[1][3]) < 0.2
           ) {
-            //   console.log("ball: ", this.positions.ball);
-            //   console.log("hoop: ", this.positions.net);
             this.will_score =
               Math.abs(this.positions.ball[0][3] - this.positions.net[0][3]) <
-              1.75;
+              1.6;
           }
           this.positions.ball = Mat4.translation(0, -5, 15)
             .times(Mat4.rotation(throw_angle, 0, 1, 0))
@@ -473,6 +471,7 @@ export class TinyBasketball extends Scene {
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
           this.last.y -= half_g * this.dt;
+
         }
 
         this.ball_timer += this.dt;
