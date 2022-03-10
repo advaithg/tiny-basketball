@@ -180,12 +180,13 @@ export class TinyBasketball extends Scene {
     this.time_left = GAME_TIME;
     // Score
     this.score = 0;
-    this.will_score = true;
+    this.will_score = false;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
     this.ball_timer = 0;
     this.in_net = false;
+    this.net_timer = 0;
     // Object locations
     this.positions = {
       light: vec4(10, 20, 8, 1),
@@ -402,7 +403,6 @@ export class TinyBasketball extends Scene {
 
     const half_g = 30.0; // correct physics on a planet with ~(2 * half_g / 9.8)x gravity of Earth
     const tth = 0.8; // ball reaches y,z-values of hoop in tth second
-    const ttn = tth + 0.1; // ball reaches net
     const ttl = 1.25; // ball disappears after ttl seconds; falls straight down either as a result of hitting wall or scoring in hoop
 
     const throw_angle = Math.atan(
@@ -410,7 +410,7 @@ export class TinyBasketball extends Scene {
     );
 
     if (this.ball_moving) {
-      if (this.ball_timer >= ttn) {
+      if (this.will_score) {
         this.in_net = true;
       }
       if (this.ball_timer >= ttl) {
@@ -419,6 +419,9 @@ export class TinyBasketball extends Scene {
         if (this.will_score) {
           this.score += 1;
         }
+        this.will_score = false;
+        this.in_net = false;
+        this.net_timer = 0;
       } else {
         // irl distances
         //    from floor to rim:                        3m
@@ -584,7 +587,15 @@ export class TinyBasketball extends Scene {
       this.materials.rim
     );
 
-    const net_shear = 0.1 * Math.sin((2 * Math.PI * this.t) / 3);
+    let net_shear = 0.1 * Math.sin((2 * Math.PI * this.t) / 3);
+
+    if (this.in_net && this.net_timer <= 0.3) {
+      net_shear =
+        0.1 * // scale shear
+        this.positions.net[0][3] * // shear proportional to x-coordinate of hoop (including sign)
+        Math.sin((2 * Math.PI * this.net_timer) / 3);
+      this.net_timer += this.dt;
+    }
 
     this.positions.net = backboard_location
       .times(Mat4.scale(0.4, 1.1, 0.5))
@@ -628,7 +639,7 @@ export class TinyBasketball extends Scene {
         this.ball_direction[0] = 0.6 * xSign;
         this.ball_direction[1] = 0.8 * ySign;
       }
-      console.log(this.ball_direction);
+      // console.log(this.ball_direction);
       this.ball_moving = true;
     }
   }
