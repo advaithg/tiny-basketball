@@ -18,3 +18,21 @@ Pressing `q` stops and restarts the game <br>
 Pressing `p` pauses the movement of the backboard <br>
 Pressing `t` toggles the music on and off <br>
 Pressing `o` turns on overdrive mode when pressed during a game, which speeds the backboard up by 4x 
+
+## Asset Credits
+
+The favicon was generated using the following graphics from Twitter Twemoji:
+- Graphics Title: 1f3c0.svg
+- Graphics Author: Copyright 2020 Twitter, Inc and other contributors (https://github.com/twitter/twemoji)
+- Graphics Source: https://github.com/twitter/twemoji/blob/master/assets/svg/1f3c0.svg
+- Graphics License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+Music from Uppbeat (free for Creators!): <br>
+Sunny: https://uppbeat.io/t/hartzmann/sunny <br>
+Overdrive: https://uppbeat.io/track/matrika/overdrive
+
+Music from TheFatRat <br>
+Windfall: https://www.youtube.com/watch?v=jqkPqfOFmbY
+
+Brick Wall texture - GamePigeon Basketball <br>
+Basketball texture - https://opengameart.org/content/basket-ball-texture
