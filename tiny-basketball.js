@@ -680,7 +680,8 @@ export class TinyBasketball extends Scene {
       .times(Mat4.translation(0, -0.56, 1.15))
       .times(Mat4.rotation(Math.PI / 4, 0, 1, 0)) // rotate so shear is in xz-plane
       .times(
-        this.backboard_move && this.game_ongoing
+        (this.backboard_move && this.game_ongoing) ||
+          (this.in_net && this.net_timer <= 0.3)
           ? // prettier-ignore
             Matrix.of(
           [1, net_shear, 0, 0], 
