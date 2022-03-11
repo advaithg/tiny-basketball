@@ -394,7 +394,7 @@ export class TinyBasketball extends Scene {
 
       const text_strings = [
         "You have " + GAME_TIME.toString() + " seconds to score",
-        "as many points as possible!",
+        "as many points as possible",
         "Last game's score: " +
           (this.session_scores.length >= 1
             ? this.session_scores[this.session_scores.length - 1]
