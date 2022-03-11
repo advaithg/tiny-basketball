@@ -36,6 +36,8 @@ const PATHS = {
   ground: "assets/ground.png",
   side_left: "assets/side_left.png",
   side_right: "assets/side_right.png",
+  text: "assets/text.png",
+  seven_segment_text: "assets/seven_segment_text.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -162,7 +164,7 @@ export class TinyBasketball extends Scene {
       }),
       timer_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
-        texture: new Texture("assets/text.png"),
+        texture: new Texture(PATHS.seven_segment_text),
       }),
       scoreboard: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
@@ -170,7 +172,7 @@ export class TinyBasketball extends Scene {
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
-        texture: new Texture("assets/text.png"),
+        texture: new Texture(PATHS.seven_segment_text),
       }),
       game_start: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
@@ -178,7 +180,7 @@ export class TinyBasketball extends Scene {
       }),
       game_start_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
-        texture: new Texture("assets/text.png"),
+        texture: new Texture(PATHS.text),
       }),
     };
 
