@@ -52,11 +52,10 @@ const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const GAME_TIME = 45;
 
-const windfall = new Audio("assets/TheFatRat_-_Windfall_Tasty_Release.mp3");
-const sunny = new Audio("assets/sunny-hartzmann-main-version-02-12-7500.mp3");
-const overdrive = new Audio(
-  "assets/overdrive-matrika-main-version-03-04-11688.mp3"
-);
+const windfall = new Audio("assets/windfall.mp3");
+const sunny = new Audio("assets/sunny.mp3");
+const overdrive = new Audio("assets/overdrive.mp3");
+const swish = new Audio("assets/swish.mp3");
 let audio = sunny;
 audio.play().catch((e) => console.log(e));
 
@@ -488,6 +487,7 @@ export class TinyBasketball extends Scene {
     if (this.ball_moving) {
       if (this.will_score) {
         this.in_net = true;
+        swish.play().catch((e) => console.log(e));
       }
       if (this.ball_timer >= ttl) {
         this.ball_moving = false;
