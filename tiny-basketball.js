@@ -294,11 +294,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    /*if (!context.scratchpad.controls) {
+    if (!context.scratchpad.controls) {
       this.children.push(
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
-    }*/
+    }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -374,8 +374,8 @@ export class TinyBasketball extends Scene {
       );
 
       const title_matrix = Mat4.identity()
-        .times(Mat4.translation(0, 2.8, 20))
-        .times(Mat4.scale(3.9, 1, 1));
+        .times(Mat4.translation(0, -4.63, 16))
+        .times(Mat4.scale(4.562, 1, 1));
       this.shapes.title.draw(
         context,
         program_state,
