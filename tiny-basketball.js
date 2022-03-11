@@ -245,7 +245,7 @@ export class TinyBasketball extends Scene {
       if (audio != overdrive) audio.pause();
       audio = overdrive;
       if (this.play_music) audio.play().catch((e) => console.log(e));
-      BACKBOARD.omega = 4* RAD_MAX / 5;
+      BACKBOARD.omega = (4 * RAD_MAX) / 5;
     });
     this.key_triggered_button("Toggle Music", ["t"], () => {
       audio.pause();
@@ -277,11 +277,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    if (!context.scratchpad.controls) {
+    /*if (!context.scratchpad.controls) {
       this.children.push(
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
-    }
+    }*/
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
