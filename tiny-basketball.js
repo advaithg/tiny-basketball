@@ -128,7 +128,7 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.basketball),
       }),
-      pole: new Material(new defs.Textured_Phong(), {
+      pole: new Material(new defs.Phong_Shader(), {
         color: COLORS.silver,
         specular: 1,
         ambient: 0.2,
