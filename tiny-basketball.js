@@ -25,7 +25,6 @@ const COLORS = {
   white: hex_color("#ffffff"),
   red: hex_color("#ff0000"),
   silver: hex_color("#bcbcbc"),
-  dark_blue: hex_color("#0000ff"),
 };
 
 const PATHS = {
@@ -35,6 +34,8 @@ const PATHS = {
   orange: "assets/orange.png", // coloring a phong shader just doesn't hit the same
   backboard: "assets/backboard.png",
   ground: "assets/ground.png",
+  side_left: "assets/side_left.png",
+  side_right: "assets/side_right.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -145,8 +146,15 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.ground),
       }),
-      sides_texture: new Material(new defs.Phong_Shader(), {
-        color: COLORS.red,
+      side_left: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.side_left),
+      }),
+      side_right: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.side_right),
       }),
       timer: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
@@ -165,7 +173,7 @@ export class TinyBasketball extends Scene {
         texture: new Texture("assets/text.png"),
       }),
       game_start: new Material(new defs.Phong_Shader(), {
-        color: COLORS.dark_blue,
+        color: COLORS.black,
         ambient: 0.15,
       }),
       game_start_text_image: new Material(new defs.Textured_Phong(1), {
@@ -277,11 +285,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    /*if (!context.scratchpad.controls) {
+    if (!context.scratchpad.controls) {
       this.children.push(
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
-    }*/
+    }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
@@ -559,7 +567,7 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       sides_transform,
-      this.materials.sides_texture
+      this.materials.side_left
     );
     sides_transform = Mat4.identity();
     sides_transform = sides_transform
@@ -570,7 +578,7 @@ export class TinyBasketball extends Scene {
       context,
       program_state,
       sides_transform,
-      this.materials.sides_texture
+      this.materials.side_right
     );
   }
 
