@@ -243,6 +243,7 @@ export class TinyBasketball extends Scene {
     audio.pause();
     audio = windfall;
     if (this.play_music === true) {
+      audio.volume = 0.5;
       audio.play().catch((e) => console.log(e));
     }
     BACKBOARD.omega = RAD_MAX / 5;
@@ -260,7 +261,10 @@ export class TinyBasketball extends Scene {
     this.key_triggered_button("Overdrive", ["o"], () => {
       if (audio != overdrive) audio.pause();
       audio = overdrive;
-      if (this.play_music) audio.play().catch((e) => console.log(e));
+      if (this.play_music) {
+        audio.volume = 0.5;
+        audio.play().catch((e) => console.log(e));
+      }
       BACKBOARD.omega = (4 * RAD_MAX) / 5;
     });
     this.key_triggered_button("Toggle music", ["t"], () => {
@@ -286,6 +290,7 @@ export class TinyBasketball extends Scene {
       if (this.play_music === true) {
         if (audio != sunny) audio.pause();
         audio = sunny;
+        audio.volume = 1.0;
         audio.play().catch((e) => console.log(e));
       }
     } else {
