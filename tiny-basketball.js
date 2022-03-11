@@ -34,6 +34,7 @@ const PATHS = {
   net: "assets/net.png",
   orange: "assets/orange.png", // coloring a phong shader just doesn't hit the same
   backboard: "assets/backboard.png",
+  ground: "assets/ground.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -139,11 +140,10 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.brick_wall),
       }),
-      ground_texture: new Material(new Reflective_Phong(), {
-        color: COLORS.white,
-        specular: 1,
-        ambient: 0.5,
-        diffusivity: 0.5,
+      ground_texture: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.ground),
       }),
       sides_texture: new Material(new defs.Phong_Shader(), {
         color: COLORS.red,
@@ -275,11 +275,11 @@ export class TinyBasketball extends Scene {
     }
 
     // gets rid of control panel to prevent movement of camera
-    /*if (!context.scratchpad.controls) {
+    if (!context.scratchpad.controls) {
       this.children.push(
         (context.scratchpad.controls = new defs.Movement_Controls())
       );
-    }*/
+    }
     if (this.once === false) {
       document.addEventListener("mouseup", (e) =>
         this.get_throw_angle(e, context)
