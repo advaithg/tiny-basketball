@@ -38,6 +38,7 @@ const PATHS = {
   side_right: "assets/side_right.png",
   text: "assets/text.png",
   seven_segment_text: "assets/seven_segment_text.png",
+  title: "assets/title.png",
 };
 
 const RAD_MAX = Math.PI * 2;
@@ -88,6 +89,7 @@ export class TinyBasketball extends Scene {
       ),
       backboard_pole: new defs.Cylindrical_Tube(5, 15),
       side_walls: new defs.Square(),
+      title: new defs.Square(),
       timer: new defs.Square(),
       timer_text: new Text_Line(3),
       scoreboard: new defs.Square(),
@@ -158,9 +160,14 @@ export class TinyBasketball extends Scene {
         ambient: 1,
         texture: new Texture(PATHS.side_right),
       }),
+      title: new Material(new defs.Textured_Phong(), {
+        color: COLORS.black,
+        ambient: 1,
+        texture: new Texture(PATHS.title),
+      }),
       timer: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
-        ambient: 0.8,
+        ambient: 1,
       }),
       timer_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
@@ -168,7 +175,7 @@ export class TinyBasketball extends Scene {
       }),
       scoreboard: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
-        ambient: 0.9,
+        ambient: 1,
       }),
       scoreboard_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
@@ -176,7 +183,7 @@ export class TinyBasketball extends Scene {
       }),
       game_start: new Material(new defs.Phong_Shader(), {
         color: COLORS.black,
-        ambient: 0.15,
+        ambient: 1,
       }),
       game_start_text_image: new Material(new defs.Textured_Phong(1), {
         ambient: 1,
@@ -257,7 +264,7 @@ export class TinyBasketball extends Scene {
       if (this.play_music) audio.play().catch((e) => console.log(e));
       BACKBOARD.omega = (4 * RAD_MAX) / 5;
     });
-    this.key_triggered_button("Toggle Music", ["t"], () => {
+    this.key_triggered_button("Toggle music", ["t"], () => {
       audio.pause();
       this.play_music = !this.play_music;
       if (this.play_music) {
@@ -357,23 +364,30 @@ export class TinyBasketball extends Scene {
 
     if (ongoing === false) {
       const sign_matrix = Mat4.identity()
-        .times(Mat4.translation(0, -0.13, 15))
-        .times(Mat4.scale(3.5, 2.7, 1));
+        .times(Mat4.translation(0, 0.115, 15))
+        .times(Mat4.scale(3.5, 3.85, 1));
       this.shapes.game_start.draw(
         context,
         program_state,
         sign_matrix,
         this.materials.game_start
       );
+
+      const title_matrix = Mat4.identity()
+        .times(Mat4.translation(0, 2.8, 20))
+        .times(Mat4.scale(3.9, 1, 1));
+      this.shapes.title.draw(
+        context,
+        program_state,
+        title_matrix,
+        this.materials.title
+      );
+
       let sign_text_matrix = Mat4.identity()
-        .times(Mat4.translation(-3.03, 2, 15.1))
+        .times(Mat4.translation(-3.03, 3.415, 15.1))
         .times(Mat4.scale(0.15, 0.2, 1));
 
       const text_strings = [
-        "To start or stop the game,",
-        "press 'q'",
-        "To pause the backboard,",
-        "press 'p'",
         "You have " + GAME_TIME.toString() + " seconds to score",
         "as many points as possible!",
         "Last game's score: " +
@@ -387,6 +401,14 @@ export class TinyBasketball extends Scene {
             : 0
           ).toString(),
         "Games played: " + this.session_scores.length.toString(),
+        "To start or stop the game,",
+        "press 'q'",
+        "To pause the backboard,",
+        "press 'p'",
+        "To toggle overdrive mode,",
+        "press 'o'",
+        "To toggle music,",
+        "press 't'",
       ];
 
       let i = 0;
@@ -400,7 +422,12 @@ export class TinyBasketball extends Scene {
           sign_text_matrix,
           this.materials.game_start_text_image
         );
-        if (i % 2 === 1 || i === 8 /* keep stats together */) {
+        if (
+          i === 1 ||
+          i === 3 ||
+          i === 4 ||
+          (i > 4 && i % 2 === 0) /* keep stats together */
+        ) {
           sign_text_matrix = sign_text_matrix.times(
             Mat4.translation(0, -2.2, 0)
           );
