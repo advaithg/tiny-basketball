@@ -47,6 +47,14 @@ const BALL_LOC = new Vector([0, 260]);
 const VERTICAL = new Vector([0, 1]);
 const GAME_TIME = 45;
 
+const windfall = new Audio("assets/TheFatRat_-_Windfall_Tasty_Release.mp3");
+const sunny = new Audio("assets/sunny-hartzmann-main-version-02-12-7500.mp3");
+const overdrive = new Audio(
+  "assets/overdrive-matrika-main-version-03-04-11688.mp3"
+);
+let audio = sunny;
+audio.play();
+
 export class TinyBasketball extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -184,6 +192,8 @@ export class TinyBasketball extends Scene {
     // Score
     this.score = 0;
     this.will_score = false;
+    // Music Flag
+    this.play_music = true;
     // Ball control
     this.ball_direction = new Vector([0, 0]);
     this.ball_moving = false;
@@ -214,6 +224,11 @@ export class TinyBasketball extends Scene {
     this.game_ongoing = !this.game_ongoing;
     this.score = 0;
     this.time_left = GAME_TIME;
+    if (this.play_music === true) {
+      audio.pause();
+      audio = windfall;
+      audio.play();
+    }
   }
 
   make_control_panel() {
@@ -223,6 +238,20 @@ export class TinyBasketball extends Scene {
       ["p"],
       () => (this.backboard_move = !this.backboard_move)
     );
+    this.key_triggered_button("overdrive", ["o"], () => {
+      if (this.play_music) {
+        audio.pause();
+        audio = overdrive;
+        audio.play();
+      }
+    });
+    this.key_triggered_button("toggle music", ["t"], () => {
+      audio.pause();
+      this.play_music = !this.play_music;
+      if (this.play_music) {
+        audio.play();
+      }
+    });
   }
 
   display(context, program_state) {
@@ -236,6 +265,11 @@ export class TinyBasketball extends Scene {
       this.ball_moving = false;
       this.positions.backboard = 0;
       this.time_left = GAME_TIME;
+      if (this.play_music === true) {
+        audio.pause();
+        audio = sunny;
+        audio.play();
+      }
     } else {
       this.time_left = this.time_left - this.dt;
     }
@@ -471,7 +505,6 @@ export class TinyBasketball extends Scene {
             .times(Mat4.translation(0, 5, -15))
             .times(this.positions.ball_origin);
           this.last.y -= half_g * this.dt;
-
         }
 
         this.ball_timer += this.dt;
