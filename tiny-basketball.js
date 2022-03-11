@@ -38,7 +38,7 @@ const PATHS = {
 };
 
 const RAD_MAX = Math.PI * 2;
-const BACKBOARD = {
+let BACKBOARD = {
   omega: RAD_MAX / 5,
   center: Mat4.translation(0, 6, -8.5),
   max: 4,
@@ -229,6 +229,7 @@ export class TinyBasketball extends Scene {
     if (this.play_music === true) {
       audio.play().catch((e) => console.log(e));
     }
+    BACKBOARD.omega = RAD_MAX / 5;
   }
 
   make_control_panel() {
@@ -244,6 +245,7 @@ export class TinyBasketball extends Scene {
       if (audio != overdrive) audio.pause();
       audio = overdrive;
       if (this.play_music) audio.play().catch((e) => console.log(e));
+      BACKBOARD.omega = 4* RAD_MAX / 5;
     });
     this.key_triggered_button("Toggle Music", ["t"], () => {
       audio.pause();
