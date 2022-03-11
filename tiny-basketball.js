@@ -379,7 +379,7 @@ export class TinyBasketball extends Scene {
       );
 
       const title_matrix = Mat4.identity()
-        .times(Mat4.translation(0, -4.63, 16))
+        .times(Mat4.translation(0, -4.64, 16))
         .times(Mat4.scale(4.562, 1, 1));
       this.shapes.title.draw(
         context,
@@ -408,10 +408,10 @@ export class TinyBasketball extends Scene {
         "Games played: " + this.session_scores.length.toString(),
         "To start or stop the game,",
         "press 'q'",
+        "Move cursor to aim and",
+        "click to shoot the ball",
         "To pause the backboard,",
         "press 'p'",
-        "To toggle overdrive mode,",
-        "press 'o'",
         "To toggle music,",
         "press 't'",
       ];
@@ -427,12 +427,8 @@ export class TinyBasketball extends Scene {
           sign_text_matrix,
           this.materials.game_start_text_image
         );
-        if (
-          i === 1 ||
-          i === 3 ||
-          i === 4 ||
-          (i > 4 && i % 2 === 0) /* keep stats together */
-        ) {
+        const non_breakpoints = [1, 3, 4, 6, 8, 10, 12];
+        if (non_breakpoints.includes(i)) {
           sign_text_matrix = sign_text_matrix.times(
             Mat4.translation(0, -2.2, 0)
           );
@@ -721,7 +717,6 @@ export class TinyBasketball extends Scene {
         this.ball_direction[0] = 0.6 * xSign;
         this.ball_direction[1] = 0.8 * ySign;
       }
-      // console.log(this.ball_direction);
       this.ball_moving = true;
     }
   }
