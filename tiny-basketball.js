@@ -53,7 +53,7 @@ const overdrive = new Audio(
   "assets/overdrive-matrika-main-version-03-04-11688.mp3"
 );
 let audio = sunny;
-audio.play().catch(e => console.log(e));
+audio.play().catch((e) => console.log(e));
 
 export class TinyBasketball extends Scene {
   constructor() {
@@ -227,28 +227,29 @@ export class TinyBasketball extends Scene {
     audio.pause();
     audio = windfall;
     if (this.play_music === true) {
-      audio.play().catch(e => console.log(e));
+      audio.play().catch((e) => console.log(e));
     }
   }
 
   make_control_panel() {
-    this.key_triggered_button("Start/Stop Game", ["q"], () => this.start_game());
+    this.key_triggered_button("Start/Stop Game", ["q"], () =>
+      this.start_game()
+    );
     this.key_triggered_button(
       "Pause backboard",
       ["p"],
       () => (this.backboard_move = !this.backboard_move)
     );
     this.key_triggered_button("Overdrive", ["o"], () => {
-        if (audio != overdrive) audio.pause();
-        audio = overdrive;
-        if (this.play_music)
-            audio.play().catch(e => console.log(e));
+      if (audio != overdrive) audio.pause();
+      audio = overdrive;
+      if (this.play_music) audio.play().catch((e) => console.log(e));
     });
     this.key_triggered_button("Toggle Music", ["t"], () => {
       audio.pause();
       this.play_music = !this.play_music;
       if (this.play_music) {
-        audio.play().catch(e => console.log(e));
+        audio.play().catch((e) => console.log(e));
       }
     });
   }
@@ -267,7 +268,7 @@ export class TinyBasketball extends Scene {
       if (this.play_music === true) {
         if (audio != sunny) audio.pause();
         audio = sunny;
-        audio.play().catch(e => console.log(e));
+        audio.play().catch((e) => console.log(e));
       }
     } else {
       this.time_left = this.time_left - this.dt;
