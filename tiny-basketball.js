@@ -200,7 +200,7 @@ export class TinyBasketball extends Scene {
     // dt
     this.dt = 0;
     // Backboard move flag
-    this.backboard_move = true;
+    this.backboard_move = false;
     // Restart Game flag
     this.game_ongoing = false;
     // Time left
@@ -236,7 +236,9 @@ export class TinyBasketball extends Scene {
   start_game() {
     if (this.game_ongoing) {
       this.session_scores.push(this.score);
+      this.backboard_move = false;
     }
+    this.backboard_move = true;
     this.game_ongoing = !this.game_ongoing;
     this.score = 0;
     this.time_left = GAME_TIME;
@@ -285,7 +287,6 @@ export class TinyBasketball extends Scene {
     }
     if (this.game_ongoing === false) {
       this.ball_moving = false;
-      this.positions.backboard = 0;
       this.time_left = GAME_TIME;
       if (this.play_music === true) {
         if (audio != sunny) audio.pause();
@@ -619,7 +620,7 @@ export class TinyBasketball extends Scene {
   // Draws backboard
   draw_backboard(context, program_state) {
     // BACKBOARD
-    if (this.backboard_move) {
+    if (this.backboard_move && this.game_ongoing) {
       if (Math.abs(this.positions.backboard) > BACKBOARD.max) {
         if (this.positions.backboard > 0) {
           this.positions.backboard = BACKBOARD.max;
@@ -629,6 +630,8 @@ export class TinyBasketball extends Scene {
         BACKBOARD.omega = -BACKBOARD.omega;
       }
       this.positions.backboard += this.dt * BACKBOARD.omega;
+    } else if (!this.game_ongoing) {
+      this.positions.backboard = 0;
     }
 
     const backboard_location = Mat4.identity()
